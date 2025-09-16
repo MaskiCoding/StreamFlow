@@ -1,0 +1,70 @@
+{
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "frontendDist": "../src"
+  },
+  "bundle": {
+    "active": true,
+    "category": "Multimedia",
+    "copyright": "Copyright (c) 2025 MaskiCoding",
+    "targets": "all",
+    "externalBin": [],
+    "icon": [
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    },
+    "longDescription": "StreamFlow - A powerful Twitch stream manager built with Tauri for maximum performance and efficiency.",
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "resources": [
+      "icons/icon.ico"
+    ],
+    "shortDescription": "Twitch Stream Manager",
+    "linux": {
+      "deb": {
+        "depends": ["streamlink"]
+      },
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    }
+  },
+  "productName": "StreamFlow",
+  "version": "1.0.0",
+  "identifier": "com.maskicoding.streamflow.tauri",
+  "plugins": {},
+  "app": {
+    "withGlobalTauri": true,
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "label": "main",
+        "width": 500,
+        "height": 450,
+        "minWidth": 500,
+        "minHeight": 450,
+        "maxWidth": 500,
+        "maxHeight": 450,
+        "resizable": false,
+        "title": "StreamFlow",
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "fullscreen": false,
+        "alwaysOnTop": false
+      }
+    ]
+  }
+}

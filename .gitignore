@@ -1,0 +1,38 @@
+# Rust build artifacts
+target/
+Cargo.lock
+
+# Node.js build artifacts
+node_modules/
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Tauri specific
+src-tauri/target/
+src-tauri/Cargo.lock
+src-tauri/bin/
+
+# Temporary files
+*.tmp
+*.temp
