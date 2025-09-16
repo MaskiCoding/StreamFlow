@@ -273,7 +273,6 @@ async fn check_twitch_stream_status(channel: &str) -> Result<String, String> {
 #[tauri::command]
 async fn check_stream_status(
     url: String,
-    state: State<'_, AppState>,
 ) -> Result<String, String> {
     log::info!("Checking stream status for: {}", url);
     
