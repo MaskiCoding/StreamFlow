@@ -389,7 +389,7 @@ body {
     color: #fff;
     border-color: var(--love);
     box-shadow: 0 4px 16px rgba(235, 111, 146, 0.4);
-    animation: slideDown 0.3s ease-out, errorPulse 2s ease-in-out;
+    animation: slideDown 0.3s ease-out;
     display: flex;
     align-items: center;
     justify-content: space-between;

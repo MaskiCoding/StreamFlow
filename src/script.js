@@ -40,7 +40,6 @@ async function initApp() {
         await updateUI();
         
         console.log('Application initialized successfully');
-        showMessage('StreamFlow ready!', 'success');
     } catch (error) {
         console.error('Failed to initialize app:', error);
         showMessage('Failed to initialize application: ' + error, 'error');
@@ -347,7 +346,6 @@ async function refreshAllStreamStatus() {
         await loadSettings();
         await updateUI();
         
-        showMessage(result || 'Stream statuses updated!', 'success');
     } catch (error) {
         console.error('Failed to refresh stream status:', error);
         showMessage('Failed to refresh stream statuses: ' + error, 'error');
@@ -421,7 +419,6 @@ async function handleAddStream() {
         await updateUI();
         
         hideAddStreamModal();
-        showMessage('Quick stream added!', 'success');
         
     } catch (error) {
         console.error('Failed to add quick stream:', error);
@@ -439,7 +436,6 @@ async function removeQuickStream(index) {
         await loadSettings();
         await updateUI();
         
-        showMessage('Quick stream removed', 'success');
         
     } catch (error) {
         console.error('Failed to remove quick stream:', error);
