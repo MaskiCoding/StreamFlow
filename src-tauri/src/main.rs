@@ -14,6 +14,7 @@ mod process_manager;
 
 use settings::{Settings, SavedStream, StreamStatus};
 use streamlink::StreamlinkManager;
+use crate::process_manager::ProcessManager;
 
 // Application state to manage across the frontend and backend
 #[derive(Debug)]
@@ -184,6 +185,24 @@ fn create_http_client() -> Result<reqwest::Client, String> {
         .map_err(|e| format!("HTTP client initialization failed: {}", e))
 }
 
+// Cleanup function to ensure all processes are terminated on application exit
+fn cleanup_processes(app_state: &AppState) {
+    log::info!("Performing application cleanup...");
+
+    // Stop any active streams
+    let mut manager = app_state.streamlink_manager.lock().unwrap();
+    if manager.is_streaming() {
+        log::info!("Stopping active stream during cleanup");
+        let _ = manager.stop_stream();
+    }
+
+    // Kill any remaining VLC processes
+    let process_manager = ProcessManager::new();
+    process_manager.kill_vlc_processes();
+
+    log::info!("Application cleanup completed");
+}
+
 // Shared function to check stream status for a given channel
 async fn check_twitch_stream_status(channel: &str) -> Result<String, String> {
     log::debug!("Checking stream status for channel: {}", channel);
@@ -207,23 +226,9 @@ async fn check_twitch_stream_status(channel: &str) -> Result<String, String> {
                 log::debug!("Successfully retrieved HTML content for channel {} ({} bytes)", channel, html_text.len());
                 
                 // Try to parse with scraper for more reliable detection
-                let document = match Html::parse_document(&html_text) {
-                    Ok(doc) => doc,
-                    Err(parse_error) => {
-                        log::warn!("HTML parsing failed for {}, falling back to string matching: {}", channel, parse_error);
-                        // Fallback to basic string search if scraper fails
-                        if html_text.contains("isLiveBroadcast\":true") || html_text.contains("Live on Twitch") {
-                            log::info!("Channel {} is Online (found live broadcast string after parse failure)", channel);
-                            return Ok("Online".to_string());
-                        } else if html_text.contains("isLiveBroadcast\":false") || html_text.contains("offline") {
-                            log::info!("Channel {} is Offline (after parse failure)", channel);
-                            return Ok("Offline".to_string());
-                        } else {
-                            log::info!("Channel {} status is Unknown (after parse failure)", channel);
-                            return Ok("Unknown".to_string());
-                        }
-                    }
-                };
+                // Html::parse_document returns Html directly, not Result
+                let document = Html::parse_document(&html_text);
+                log::debug!("Successfully parsed HTML document for channel {}", channel);
 
                 log::debug!("Successfully parsed HTML document for channel {}", channel);
 
@@ -282,6 +287,8 @@ async fn check_stream_status(
 }
 
 #[tauri::command]
+#[allow(dead_code)]
+#[allow(unused_variables)]
 async fn check_all_quick_streams_status(
     _state: State<'_, AppState>,
 ) -> Result<Vec<(usize, String)>, String> {
@@ -291,6 +298,7 @@ async fn check_all_quick_streams_status(
 }
 
 #[tauri::command]
+#[allow(dead_code)]
 async fn get_app_version() -> Result<String, String> {
     Ok(env!("CARGO_PKG_VERSION").to_string())
 }
@@ -494,12 +502,25 @@ fn main() {
         .setup(|app| {
             // Setup window and initialize the application
             let window = app.get_webview_window("main").unwrap();
-            
+
             // Set window properties
             let _ = window.set_title("StreamFlow");
-            
+
             log::info!("Application setup completed");
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // Handle window close event to ensure cleanup
+            match event {
+                tauri::WindowEvent::CloseRequested { .. } => {
+                    log::info!("Application window close requested, performing cleanup...");
+                    // Get the app state and perform cleanup
+                    if let Some(app_handle) = window.app_handle().clone().try_state::<AppState>() {
+                        cleanup_processes(&app_handle);
+                    }
+                }
+                _ => {}
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

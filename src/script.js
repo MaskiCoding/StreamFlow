@@ -612,23 +612,51 @@ function updateQuickStreams() {
 // Show message to user
 function showMessage(message, type = 'info') {
     const messageEl = elements.messageDisplay;
-    
-    messageEl.textContent = message;
+
+    // Clear any existing content and create new structure
+    messageEl.innerHTML = '';
+
+    // Create message text
+    const messageText = document.createElement('span');
+    messageText.textContent = message;
+    messageEl.appendChild(messageText);
+
+    // Add dismiss button for error messages
+    if (type === 'error') {
+        const dismissBtn = document.createElement('button');
+        dismissBtn.textContent = '✕';
+        dismissBtn.className = 'message-dismiss';
+        dismissBtn.onclick = () => hideMessage();
+        dismissBtn.title = 'Dismiss message';
+        messageEl.appendChild(dismissBtn);
+    }
+
+    // Set base classes
     messageEl.className = 'message-display show';
-    
+
+    // Add type-specific classes
     if (type === 'error') {
         messageEl.classList.add('error');
     } else if (type === 'success') {
         messageEl.classList.add('success');
     }
-    
-    // Auto hide after 3 seconds
+
+    // Different auto-hide timing based on message type
+    const hideDelay = type === 'error' ? 8000 : 3000; // 8 seconds for errors, 3 for others
+
+    // Auto hide after delay
     setTimeout(() => {
-        messageEl.classList.remove('show');
-        setTimeout(() => {
-            messageEl.className = 'message-display';
-        }, 300);
-    }, 3000);
+        hideMessage();
+    }, hideDelay);
+}
+
+function hideMessage() {
+    const messageEl = elements.messageDisplay;
+    messageEl.classList.remove('show');
+    setTimeout(() => {
+        messageEl.className = 'message-display';
+        messageEl.innerHTML = '';
+    }, 300);
 }
 
 // Handle keyboard shortcuts

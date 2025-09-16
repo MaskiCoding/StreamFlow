@@ -363,30 +363,89 @@ body {
     transform: translateX(-50%);
     background-color: var(--overlay);
     color: var(--text);
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 12px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    z-index: 1000;
-    max-width: 400px;
+    z-index: 9999;
+    max-width: 450px;
     text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--overlay);
+    animation: none;
 }
 
 .message-display.show {
     opacity: 1;
     visibility: visible;
+    animation: slideDown 0.3s ease-out;
 }
 
 .message-display.error {
     background-color: var(--love);
     color: #fff;
+    border-color: var(--love);
+    box-shadow: 0 4px 16px rgba(235, 111, 146, 0.4);
+    animation: slideDown 0.3s ease-out, errorPulse 2s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .message-display.success {
     background-color: var(--green);
     color: #fff;
+    border-color: var(--green);
+    box-shadow: 0 4px 16px rgba(49, 120, 143, 0.3);
+}
+
+@keyframes slideDown {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes errorPulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(235, 111, 146, 0.4); }
+    50% { box-shadow: 0 4px 20px rgba(235, 111, 146, 0.6); }
+}
+
+/* Message dismiss button */
+.message-dismiss {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.message-dismiss:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.message-dismiss:active {
+    transform: scale(0.95);
 }
 
 /* Context Menu */

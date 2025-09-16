@@ -113,7 +113,7 @@ impl ProcessManager {
     }
 
     // Helper function to kill VLC processes
-    fn kill_vlc_processes(&self) {
+    pub fn kill_vlc_processes(&self) {
         #[cfg(windows)]
         {
             match std::process::Command::new("taskkill")
@@ -162,10 +162,12 @@ impl ProcessManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_current_url(&self) -> Option<&String> {
         self.current_url.as_ref()
     }
 
+    #[allow(dead_code)]
     pub fn is_streaming(&self) -> bool {
         self.current_process.is_some()
     }
@@ -211,6 +213,9 @@ impl Drop for ProcessManager {
             info!("ProcessManager dropping, stopping active stream");
             self.stop_stream();
         }
+
+        // Additional cleanup: kill any remaining VLC processes
+        self.kill_vlc_processes();
     }
 }
 

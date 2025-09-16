@@ -36,10 +36,12 @@ impl StreamlinkManager {
         self.process_manager.stop_stream()
     }
 
+    #[allow(dead_code)]
     pub fn is_streaming(&self) -> bool {
         self.process_manager.is_streaming()
     }
 
+    #[allow(dead_code)]
     pub fn get_current_url(&self) -> Option<&String> {
         self.process_manager.get_current_url()
     }
@@ -115,6 +117,7 @@ impl StreamlinkManager {
     }
 
     // Check if a stream is likely to be working by doing a quick streamlink test
+    #[allow(dead_code)]
     pub fn test_stream_availability(&self, url: &str) -> bool {
         use std::process::{Command, Stdio};
         

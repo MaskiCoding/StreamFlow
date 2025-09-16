@@ -101,6 +101,7 @@ impl Settings {
     }
 
     // Add a new quick stream, maintaining the 4-stream limit
+    #[allow(dead_code)]
     pub fn add_quick_stream(&mut self, stream: SavedStream) {
         if self.quick_streams.len() >= 4 {
             // Remove the oldest stream (first in the list)
@@ -110,6 +111,7 @@ impl Settings {
     }
 
     // Remove a quick stream by index
+    #[allow(dead_code)]
     pub fn remove_quick_stream(&mut self, index: usize) -> bool {
         if index < self.quick_streams.len() {
             self.quick_streams.remove(index);
@@ -120,6 +122,7 @@ impl Settings {
     }
 
     // Update stream status by URL
+    #[allow(dead_code)]
     pub fn update_stream_status(&mut self, url: &str, status: StreamStatus) {
         for stream in &mut self.quick_streams {
             if stream.url == url {
@@ -131,6 +134,7 @@ impl Settings {
     }
 
     // Get stream by URL
+    #[allow(dead_code)]
     pub fn get_stream_by_url(&self, url: &str) -> Option<&SavedStream> {
         self.quick_streams.iter().find(|stream| stream.url == url)
     }
