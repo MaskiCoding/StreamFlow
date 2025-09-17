@@ -1,6 +1,6 @@
 {
   "name": "streamflow-tauri",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "StreamFlow - Twitch Stream Manager with Tauri Architecture",
   "private": true,
   "scripts": {
