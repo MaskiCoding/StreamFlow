@@ -410,7 +410,7 @@ body {
     }
     100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(-50%) translateY(0);
     }
 }
 
@@ -446,6 +446,56 @@ body {
 
 .message-dismiss:active {
     transform: scale(0.95);
+}
+
+/* Disable browser autocomplete dropdowns completely */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--surface) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    box-shadow: none;
+}
+
+/* Hide all browser UI elements that might show dropdowns */
+input::-webkit-calendar-picker-indicator,
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button,
+input::-webkit-clear-button,
+input::-webkit-search-cancel-button,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+    display: none !important;
+}
+
+/* Disable autocomplete entirely */
+input {
+    autocomplete: off !important;
+    -webkit-autocomplete: off !important;
+    -moz-autocomplete: off !important;
+    -ms-autocomplete: off !important;
+}
+
+/* Hide autocomplete popup/dropdown */
+input::-webkit-contacts-auto-fill,
+input::-webkit-credentials-auto-fill {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Additional aggressive rules */
+input:not([type="password"]) {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+input::-webkit-search-decoration,
+input::-webkit-search-results-button,
+input::-webkit-search-results-decoration {
+    display: none;
 }
 
 /* Context Menu */

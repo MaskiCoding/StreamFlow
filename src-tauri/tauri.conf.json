@@ -40,13 +40,13 @@
     }
   },
   "productName": "StreamFlow",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "identifier": "com.maskicoding.streamflow.tauri",
   "plugins": {},
   "app": {
     "withGlobalTauri": true,
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
     },
     "windows": [
       {

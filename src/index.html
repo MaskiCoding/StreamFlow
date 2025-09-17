@@ -16,12 +16,16 @@
         <!-- URL Input Section -->
         <div class="url-section">
             <div class="url-input-container">
-                <input 
-                    type="text" 
-                    id="url-input" 
-                    class="url-input" 
+                <input
+                    type="text"
+                    id="url-input"
+                    class="url-input"
                     placeholder="Enter username"
                     autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-form-type="other"
                 />
                 <select id="quality-select" class="quality-select">
                     <option value="best">best</option>
@@ -95,13 +99,13 @@
     <!-- Add Stream Modal -->
     <div id="add-stream-modal" class="modal">
         <div class="modal-content">
-            <h3>Add Saved Stream</h3>
+            <h3>Add Stream</h3>
             <div class="modal-form">
                 <label for="stream-name">Stream Name:</label>
-                <input type="text" id="stream-name" placeholder="Enter stream name">
-                
+                <input type="text" id="stream-name" placeholder="Enter stream name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other">
+
                 <label for="stream-url">Twitch Username:</label>
-                <input type="text" id="stream-url" placeholder="Enter username">
+                <input type="text" id="stream-url" placeholder="Enter username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other">
                 
                 <div class="modal-buttons">
                     <button id="cancel-add-stream" class="modal-btn cancel-btn">Cancel</button>

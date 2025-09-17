@@ -1,10 +1,10 @@
 [package]
-name = "StreamFlow-Tauri"
-version = "1.0.0"
+name = "streamflow-tauri"
+version = "2.0.0"
 description = "StreamFlow - Twitch Stream Manager with Tauri Architecture"
 authors = ["MaskiCoding"]
 license = "MIT"
-repository = "https://github.com/MaskiCoding/StreamFlow"
+repository = "https://github.com/MaskiCoding/StreamFlow-Tauri"
 edition = "2021"
 rust-version = "1.84.1"
 
