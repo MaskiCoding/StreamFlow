@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "release": "npm run build && echo 'Build complete! Check src-tauri/target/release/bundle/ for installers'"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0"
