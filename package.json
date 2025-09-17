@@ -4,9 +4,10 @@
   "description": "StreamFlow - Twitch Stream Manager with Tauri Architecture",
   "private": true,
   "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build",
+    "dev": "npm run bundle-js && tauri dev",
+    "build": "npm run bundle-js && tauri build",
     "tauri": "tauri",
+    "bundle-js": "node src/build-js.js",
     "release": "npm run build && echo 'Build complete! Check src-tauri/target/release/bundle/ for installers'"
   },
   "devDependencies": {
