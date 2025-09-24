@@ -1,0 +1,200 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  VERSION_DATE: ${{ format('{0}.{1}.{2}', github.run_number, github.run_id, github.run_attempt) }}
+
+jobs:
+  # Code quality checks
+  code-quality:
+    name: Code Quality
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Dependencies
+        run: |
+          rustup component add rustfmt
+          rustup component add clippy
+
+      - name: Check Formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy -- -D warnings
+
+  # Build and test
+  build:
+    name: Build and Test
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x86_64-pc-windows-msvc, x86_64-pc-windows-gnu]
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install GNU target dependencies
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          # Install MinGW-w64 for GNU target
+          choco install mingw --params "/Architecture:x86_64"
+
+      - name: Build Debug
+        run: cargo build --target ${{ matrix.target }} --verbose
+
+      - name: Run Tests
+        run: cargo test --target ${{ matrix.target }} --verbose
+
+      - name: Build Release
+        run: cargo build --release --target ${{ matrix.target }} --verbose
+
+  # Create release builds
+  release:
+    name: Create Release Artifacts
+    runs-on: windows-latest
+    needs: [code-quality, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set Version Info
+        id: version
+        shell: pwsh
+        env:
+          FULL_SHA: ${{ github.sha }}
+        run: |
+          $BUILD_DATE = Get-Date -Format 'yyyyMMdd'
+          $SHORT_SHA = $FULL_SHA.Substring(0, 7)
+          $RELEASE_VERSION = "${BUILD_DATE}.$SHORT_SHA"
+          echo "BUILD_DATE=$BUILD_DATE" >> $env:GITHUB_ENV
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $env:GITHUB_ENV
+          echo "Version: $RELEASE_VERSION"
+
+      - name: Build Release
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Create Release Archive
+        shell: pwsh
+        run: |
+          # Create release directory
+          New-Item -ItemType Directory -Path "release" -Force
+          
+          # Copy the executable
+          Copy-Item "target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "release\"
+          
+          # Create archive
+          Compress-Archive -Path "release\*" -DestinationPath "streamflow-tauri-windows-${env:RELEASE_VERSION}.zip"
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamflow-tauri-windows-${{ env.RELEASE_VERSION }}
+          path: streamflow-tauri-windows-${{ env.RELEASE_VERSION }}.zip
+          retention-days: 30
+
+  # Update rolling release
+  rolling-release:
+    name: Update Rolling Release
+    runs-on: windows-latest
+    needs: release
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - name: Download Release Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare Release Assets
+        shell: pwsh
+        run: |
+          # Find the latest artifact
+          $artifact = Get-ChildItem -Path "artifacts" -Name | Select-Object -First 1
+          $artifactPath = "artifacts\$artifact"
+          
+          # Move to root for upload
+          Move-Item $artifactPath "streamflow-tauri-rolling-release.zip"
+          
+          # Generate checksums
+          $hash = Get-FileHash -Path "streamflow-tauri-rolling-release.zip" -Algorithm SHA256
+          $checksums = "SHA256: $($hash.Hash)"
+          echo $checksums > "streamflow-tauri-rolling-release.zip.sha256"
+
+      - name: Create/Update Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Rolling Release (${{ env.RELEASE_VERSION }})
+          tag_name: rolling
+          make_latest: true
+          prerelease: false
+          body: |
+            🚀 **StreamFlow-Tauri Rolling Release**
+            
+            This is the latest rolling release of StreamFlow-Tauri, built automatically on every commit to main.
+            
+            **Version:** ${{ env.RELEASE_VERSION }}
+            **Commit:** ${{ github.sha }}
+            **Built:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+            **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ## Installation
+            1. Download the ZIP file
+            2. Extract to your desired location
+            3. Run `streamflow-tauri.exe`
+            
+            ## SHA256 Checksum
+            ```
+            $(Get-Content "streamflow-tauri-rolling-release.zip.sha256")
+            ```
+            
+            ## What's New
+            - Improved Rust-native architecture following Dorion patterns
+            - Enhanced error handling and configuration management
+            - Better process management and cleanup
+            - Modern modular codebase structure
+            
+          files: |
+            streamflow-tauri-rolling-release.zip
+            streamflow-tauri-rolling-release.zip.sha256
+          generate_release_notes: false

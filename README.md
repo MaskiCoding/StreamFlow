@@ -81,6 +81,14 @@ The project uses GitHub Actions for automated builds:
 
 ## Changelog
 
+### v1.0.1 - Bug Fixes and Performance Improvements
+- **Fixed**: JavaScript API call bug in status indicator update
+- **Fixed**: Removed dead code functions for cleaner codebase
+- **Improved**: Optimized autocomplete prevention (reduced resource usage)
+- **Improved**: Fixed HTTP user agent to avoid non-existent domains
+- **Enhanced**: Better error handling and logging throughout application
+- **Verified**: All API functions properly linked and functional
+
 ### v1.0.0 - Production Release
 - Complete modular architecture with ES6 modules
 - Comprehensive autocomplete prevention
