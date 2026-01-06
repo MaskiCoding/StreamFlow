@@ -1,4 +1,5 @@
 use crate::error::{StreamFlowError, StreamFlowResult};
+use crate::types::{SavedStream, StreamStatus};
 use crate::util::helpers::{get_config_dir, is_portable};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -28,27 +29,6 @@ impl Default for Config {
             behavior: BehaviorConfig::default(),
             advanced: AdvancedConfig::default(),
         }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SavedStream {
-    pub name: String,
-    pub url: String,
-    pub status: StreamStatus,
-    pub last_checked: Option<chrono::DateTime<chrono::Utc>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum StreamStatus {
-    Online,
-    Offline,
-    Unknown,
-}
-
-impl Default for StreamStatus {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 
