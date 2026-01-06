@@ -8,6 +8,7 @@ mod process_manager;
 mod settings;
 mod streamlink;
 mod twitch;
+mod types;
 
 // New modular structure
 mod config;
