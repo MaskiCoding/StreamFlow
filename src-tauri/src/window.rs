@@ -60,7 +60,11 @@ impl WindowManager {
     }
 
     /// Set window size
-    pub fn set_window_size(window: &WebviewWindow, width: f64, height: f64) -> StreamFlowResult<()> {
+    pub fn set_window_size(
+        window: &WebviewWindow,
+        width: f64,
+        height: f64,
+    ) -> StreamFlowResult<()> {
         window.set_size(tauri::Size::Physical(tauri::PhysicalSize {
             width: width as u32,
             height: height as u32,
