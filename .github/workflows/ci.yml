@@ -68,9 +68,6 @@ jobs:
     defaults:
       run:
         working-directory: src-tauri
-    strategy:
-      matrix:
-        target: [x86_64-pc-windows-msvc, x86_64-pc-windows-gnu]
     
     steps:
       - name: Checkout Repository
@@ -79,30 +76,21 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-pc-windows-msvc
 
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-          key: ${{ matrix.target }}
-
-      - name: Install GNU target dependencies
-        if: matrix.target == 'x86_64-pc-windows-gnu'
-        shell: pwsh
-        working-directory: .
-        run: |
-          # Install MinGW-w64 for GNU target
-          choco install mingw --params "/Architecture:x86_64"
 
       - name: Build Debug
-        run: cargo build --target ${{ matrix.target }} --verbose
+        run: cargo build --target x86_64-pc-windows-msvc --verbose
 
       - name: Run Tests
-        run: cargo test --target ${{ matrix.target }} --verbose
+        run: cargo test --target x86_64-pc-windows-msvc --verbose
 
       - name: Build Release
-        run: cargo build --release --target ${{ matrix.target }} --verbose
+        run: cargo build --release --target x86_64-pc-windows-msvc --verbose
 
   # Create release builds
   release:
