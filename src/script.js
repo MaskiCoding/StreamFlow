@@ -531,7 +531,7 @@ async function handleStartStream(url, quality) {
     setStartingState(true);
 
     // Start stream via backend
-    const result = await apiStartStream(normalizedUrl, quality);
+    const result = await startStream(normalizedUrl, quality);
 
     console.log("Stream started:", result);
 
@@ -560,7 +560,7 @@ async function handleStopStream() {
   console.log("Stopping stream");
 
   try {
-    const result = await apiStopStream();
+    const result = await stopStream();
     console.log("Stream stopped:", result);
 
     // Update state

@@ -75,8 +75,8 @@ body {
   flex: 1;
   height: 35px;
   padding: 0 12px;
-  background-color: var(--base);
-  border: 1px solid var(--overlay);
+  background-color: var(--surface);
+  border: 1px solid var(--muted);
   border-radius: 6px;
   color: var(--text);
   font-size: 14px;
@@ -581,8 +581,8 @@ input::-webkit-search-results-decoration {
 .modal-form input {
   height: 32px;
   padding: 0 10px;
-  background-color: var(--base);
-  border: 1px solid var(--overlay);
+  background-color: var(--surface);
+  border: 1px solid var(--muted);
   border-radius: 4px;
   color: var(--text);
   font-size: 14px;
