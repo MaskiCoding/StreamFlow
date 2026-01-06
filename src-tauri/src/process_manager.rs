@@ -213,10 +213,8 @@ impl Drop for ProcessManager {
         if self.current_process.is_some() {
             info!("ProcessManager dropping, stopping active stream");
             self.stop_stream();
+            // Only kill VLC if we were streaming (not unconditionally)
         }
-
-        // Additional cleanup: kill any remaining VLC processes
-        self.kill_vlc_processes();
     }
 }
 
@@ -237,6 +235,5 @@ mod tests {
 
         // Stopping when no stream is running should return false
         assert!(!manager.stop_stream());
-        assert!(false == manager.stop_stream());
     }
 }

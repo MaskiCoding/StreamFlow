@@ -158,13 +158,11 @@ pub async fn add_quick_stream(
     };
 
     // Add to quick streams (max 4)
-    if settings.quick_streams.len() < 4 {
-        settings.quick_streams.push(new_stream);
-    } else {
-        // Replace the oldest one
-        settings.quick_streams[0] = new_stream;
-        settings.quick_streams.rotate_left(1);
+    if settings.quick_streams.len() >= 4 {
+        // Remove the oldest one (first in list)
+        settings.quick_streams.remove(0);
     }
+    settings.quick_streams.push(new_stream);
 
     match settings.save() {
         Ok(()) => Ok("Quick stream added successfully".to_string()),
