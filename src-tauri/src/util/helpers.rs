@@ -27,13 +27,10 @@ pub fn get_platform() -> &'static str {
 pub fn is_windows_7() -> bool {
     use windows_version::OsVersion;
 
-    match OsVersion::current() {
-        OsVersion::Windows(win) => {
-            // Windows 7 is version 6.1
-            win.major == 6 && win.minor == 1
-        }
-        _ => false,
-    }
+    // OsVersion::current() returns the Windows version directly
+    // Windows 7 is version 6.1
+    let version = OsVersion::current();
+    version.major == 6 && version.minor == 1
 }
 
 #[cfg(not(target_os = "windows"))]
