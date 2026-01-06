@@ -1,8 +1,8 @@
+use crate::error::{StreamFlowError, StreamFlowResult};
+use crate::util::helpers::{get_config_dir, is_portable};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use crate::error::{StreamFlowError, StreamFlowResult};
-use crate::util::helpers::{get_config_dir, is_portable};
 
 /// Main configuration structure for StreamFlow-Tauri
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -145,7 +145,10 @@ impl Config {
         let path = Self::get_config_path();
 
         if !path.exists() {
-            log::warn!("Configuration file not found at: {:?}, creating default", path);
+            log::warn!(
+                "Configuration file not found at: {:?}, creating default",
+                path
+            );
             let config = Self::default();
             config.save()?;
             return Ok(config);
@@ -161,9 +164,9 @@ impl Config {
     /// Save configuration to file
     pub fn save(&self) -> StreamFlowResult<()> {
         let path = Self::get_config_path();
-        let parent = path.parent().ok_or_else(|| {
-            StreamFlowError::ConfigError("Invalid config path".to_string())
-        })?;
+        let parent = path
+            .parent()
+            .ok_or_else(|| StreamFlowError::ConfigError("Invalid config path".to_string()))?;
 
         // Create directory if it doesn't exist
         std::fs::create_dir_all(parent)?;
@@ -203,12 +206,18 @@ impl Config {
             self.quick_streams.remove(index);
             self.save()
         } else {
-            Err(StreamFlowError::ConfigError("Invalid stream index".to_string()))
+            Err(StreamFlowError::ConfigError(
+                "Invalid stream index".to_string(),
+            ))
         }
     }
 
     /// Update stream status
-    pub fn update_stream_status(&mut self, url: &str, status: StreamStatus) -> StreamFlowResult<()> {
+    pub fn update_stream_status(
+        &mut self,
+        url: &str,
+        status: StreamStatus,
+    ) -> StreamFlowResult<()> {
         if let Some(stream) = self.quick_streams.iter_mut().find(|s| s.url == url) {
             stream.status = status;
             stream.last_checked = Some(chrono::Utc::now());

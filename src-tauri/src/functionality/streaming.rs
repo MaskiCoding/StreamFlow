@@ -1,11 +1,11 @@
+use crate::error::{StreamFlowError, StreamFlowResult};
+use crate::process_manager::ProcessManager;
+use crate::settings::{SavedStream, Settings, StreamStatus};
+use crate::streamlink::StreamlinkManager;
+use crate::twitch::TwitchValidator;
+use scraper::{Html, Selector};
 use std::sync::Mutex;
 use tauri::State;
-use scraper::{Html, Selector};
-use crate::error::{StreamFlowError, StreamFlowResult};
-use crate::settings::{Settings, SavedStream, StreamStatus};
-use crate::streamlink::StreamlinkManager;
-use crate::process_manager::ProcessManager;
-use crate::twitch::TwitchValidator;
 
 /// Application state to manage across the frontend and backend
 #[derive(Debug)]
@@ -65,7 +65,9 @@ pub async fn stop_stream(state: State<'_, AppState>) -> StreamFlowResult<String>
         *current = None;
         Ok("Stream stopped successfully".to_string())
     } else {
-        Err(StreamFlowError::StreamError("No stream to stop or failed to stop".to_string()))
+        Err(StreamFlowError::StreamError(
+            "No stream to stop or failed to stop".to_string(),
+        ))
     }
 }
 
@@ -114,7 +116,10 @@ pub async fn save_settings(
         Ok(()) => Ok("Settings saved successfully".to_string()),
         Err(e) => {
             log::error!("Failed to save settings: {}", e);
-            Err(StreamFlowError::ConfigError(format!("Failed to save settings: {}", e)))
+            Err(StreamFlowError::ConfigError(format!(
+                "Failed to save settings: {}",
+                e
+            )))
         }
     }
 }
@@ -145,7 +150,10 @@ pub async fn add_quick_stream(
 
     match settings.save() {
         Ok(()) => Ok("Quick stream added successfully".to_string()),
-        Err(e) => Err(StreamFlowError::ConfigError(format!("Failed to save quick stream: {}", e)))
+        Err(e) => Err(StreamFlowError::ConfigError(format!(
+            "Failed to save quick stream: {}",
+            e
+        ))),
     }
 }
 
@@ -160,10 +168,15 @@ pub async fn remove_quick_stream(
         settings.quick_streams.remove(index);
         match settings.save() {
             Ok(()) => Ok("Quick stream removed successfully".to_string()),
-            Err(e) => Err(StreamFlowError::ConfigError(format!("Failed to save settings: {}", e)))
+            Err(e) => Err(StreamFlowError::ConfigError(format!(
+                "Failed to save settings: {}",
+                e
+            ))),
         }
     } else {
-        Err(StreamFlowError::ValidationError("Invalid quick stream index".to_string()))
+        Err(StreamFlowError::ValidationError(
+            "Invalid quick stream index".to_string(),
+        ))
     }
 }
 
@@ -173,7 +186,9 @@ fn create_http_client() -> StreamFlowResult<reqwest::Client> {
         .timeout(std::time::Duration::from_secs(5))
         .user_agent("StreamFlow-Tauri/1.0")
         .build()
-        .map_err(|e| StreamFlowError::NetworkError(format!("HTTP client initialization failed: {}", e)))
+        .map_err(|e| {
+            StreamFlowError::NetworkError(format!("HTTP client initialization failed: {}", e))
+        })
 }
 
 /// Cleanup function to ensure all processes are terminated on application exit
@@ -201,20 +216,35 @@ async fn check_twitch_stream_status(channel: &str) -> StreamFlowResult<String> {
     // Create a new client with timeout and user agent
     let client = create_http_client()?;
 
-    match client.get(&format!("https://www.twitch.tv/{}", channel)).send().await {
+    match client
+        .get(&format!("https://www.twitch.tv/{}", channel))
+        .send()
+        .await
+    {
         Ok(response) => {
-            log::debug!("Received response for channel {}: status {}", channel, response.status());
+            log::debug!(
+                "Received response for channel {}: status {}",
+                channel,
+                response.status()
+            );
 
             if response.status().is_success() {
                 let html_text = match response.text().await {
                     Ok(text) => text,
                     Err(e) => {
                         log::error!("Failed to read Twitch response for {}: {}", channel, e);
-                        return Err(StreamFlowError::NetworkError(format!("Network error reading response for {}: {}", channel, e)));
+                        return Err(StreamFlowError::NetworkError(format!(
+                            "Network error reading response for {}: {}",
+                            channel, e
+                        )));
                     }
                 };
 
-                log::debug!("Successfully retrieved HTML content for channel {} ({} bytes)", channel, html_text.len());
+                log::debug!(
+                    "Successfully retrieved HTML content for channel {} ({} bytes)",
+                    channel,
+                    html_text.len()
+                );
 
                 // Try to parse with scraper for more reliable detection
                 let document = Html::parse_document(&html_text);
@@ -222,22 +252,39 @@ async fn check_twitch_stream_status(channel: &str) -> StreamFlowResult<String> {
 
                 // Look for the live indicator in the parsed HTML
                 let live_selector = Selector::parse("span.live-indicator").map_err(|e| {
-                    log::warn!("Failed to parse live indicator selector for channel {}: {}", channel, e);
-                    StreamFlowError::GenericError(format!("Failed to parse HTML selector for live indicator: {}", e))
+                    log::warn!(
+                        "Failed to parse live indicator selector for channel {}: {}",
+                        channel,
+                        e
+                    );
+                    StreamFlowError::GenericError(format!(
+                        "Failed to parse HTML selector for live indicator: {}",
+                        e
+                    ))
                 })?;
 
                 // Check if any elements match the selector
                 if document.select(&live_selector).next().is_some() {
-                    log::info!("Channel {} is Online (found live indicator element)", channel);
+                    log::info!(
+                        "Channel {} is Online (found live indicator element)",
+                        channel
+                    );
                     Ok("Online".to_string())
                 } else {
                     log::debug!("Live indicator element not found for channel {}, checking with string matching", channel);
 
                     // Fallback to basic string search if scraper doesn't find anything
-                    if html_text.contains("isLiveBroadcast\":true") || html_text.contains("Live on Twitch") {
-                        log::info!("Channel {} is Online (found live broadcast string)", channel);
+                    if html_text.contains("isLiveBroadcast\":true")
+                        || html_text.contains("Live on Twitch")
+                    {
+                        log::info!(
+                            "Channel {} is Online (found live broadcast string)",
+                            channel
+                        );
                         Ok("Online".to_string())
-                    } else if html_text.contains("isLiveBroadcast\":false") || html_text.contains("offline") {
+                    } else if html_text.contains("isLiveBroadcast\":false")
+                        || html_text.contains("offline")
+                    {
                         log::info!("Channel {} is Offline", channel);
                         Ok("Offline".to_string())
                     } else {
@@ -247,26 +294,39 @@ async fn check_twitch_stream_status(channel: &str) -> StreamFlowResult<String> {
                 }
             } else {
                 // Add structured error for failed status checks
-                log::warn!("Status determination for channel '{}' was inconclusive (HTTP {})", channel, response.status());
+                log::warn!(
+                    "Status determination for channel '{}' was inconclusive (HTTP {})",
+                    channel,
+                    response.status()
+                );
                 Ok("Unknown".to_string())
             }
         }
         Err(e) => {
-            log::error!("Failed to check stream status for channel {}: {}", channel, e);
-            Err(StreamFlowError::NetworkError(format!("Failed to check stream status: {}", e)))
+            log::error!(
+                "Failed to check stream status for channel {}: {}",
+                channel,
+                e
+            );
+            Err(StreamFlowError::NetworkError(format!(
+                "Failed to check stream status: {}",
+                e
+            )))
         }
     }
 }
 
 #[tauri::command]
-pub async fn check_stream_status(
-    url: String,
-) -> StreamFlowResult<String> {
+pub async fn check_stream_status(url: String) -> StreamFlowResult<String> {
     log::info!("Checking stream status for: {}", url);
 
     let channel = match TwitchValidator::extract_channel_name(&url) {
         Some(c) => c,
-        None => return Err(StreamFlowError::ValidationError("Invalid Twitch URL".to_string())),
+        None => {
+            return Err(StreamFlowError::ValidationError(
+                "Invalid Twitch URL".to_string(),
+            ))
+        }
     };
 
     // Use the shared function to check stream status
@@ -279,15 +339,15 @@ pub async fn get_app_version() -> StreamFlowResult<String> {
 }
 
 #[tauri::command]
-pub async fn update_quick_stream_status(
-    state: State<'_, AppState>,
-) -> StreamFlowResult<String> {
+pub async fn update_quick_stream_status(state: State<'_, AppState>) -> StreamFlowResult<String> {
     log::info!("Updating status for all quick streams");
 
     // Get the streams to check without holding the lock
     let streams_to_check: Vec<(usize, String, String)> = {
         let settings = state.settings.lock().unwrap();
-        settings.quick_streams.iter()
+        settings
+            .quick_streams
+            .iter()
             .enumerate()
             .filter_map(|(i, stream)| {
                 TwitchValidator::extract_channel_name(&stream.url)
@@ -311,12 +371,10 @@ pub async fn update_quick_stream_status(
         let handle = tokio::spawn(async move {
             // Use the shared function to check stream status
             match check_twitch_stream_status(&channel).await {
-                Ok(status) => {
-                    match status.as_str() {
-                        "Online" => StreamStatus::Online,
-                        "Offline" => StreamStatus::Offline,
-                        _ => StreamStatus::Unknown,
-                    }
+                Ok(status) => match status.as_str() {
+                    "Online" => StreamStatus::Online,
+                    "Offline" => StreamStatus::Offline,
+                    _ => StreamStatus::Unknown,
                 },
                 Err(e) => {
                     log::error!("Failed to check stream {} status: {}", index, e);
@@ -356,8 +414,11 @@ pub async fn update_quick_stream_status(
             Ok(()) => {
                 log::info!("Live status check completed");
                 Ok(format!("Updated stream statuses"))
-            },
-            Err(e) => Err(StreamFlowError::ConfigError(format!("Failed to save settings: {}", e)))
+            }
+            Err(e) => Err(StreamFlowError::ConfigError(format!(
+                "Failed to save settings: {}",
+                e
+            ))),
         }
     }
 }

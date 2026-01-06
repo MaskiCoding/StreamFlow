@@ -1,5 +1,5 @@
+use log::{error, info, warn};
 use std::process::{Child, Command, Stdio};
-use log::{info, warn, error};
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -33,30 +33,32 @@ impl ProcessManager {
 
         // Check if streamlink is available (cached result to avoid repeated checks)
         if !self.is_streamlink_available() {
-            return Err("Streamlink not found. Please install with: pip install streamlink".to_string());
+            return Err(
+                "Streamlink not found. Please install with: pip install streamlink".to_string(),
+            );
         }
 
         // Extract channel name - avoid string allocation if possible
         let channel = crate::twitch::TwitchValidator::extract_channel_name(url)
             .ok_or_else(|| "Invalid Twitch URL".to_string())?;
-        
+
         // Build command efficiently
         let mut cmd = Command::new("streamlink");
-        
+
         // Add luminous.dev proxy for ad blocking (TTV LOL)
         cmd.arg("--twitch-proxy-playlist")
-           .arg(TTV_LOL_PROXY_URL)
-           .arg("--twitch-disable-ads");
-        
+            .arg(TTV_LOL_PROXY_URL)
+            .arg("--twitch-disable-ads");
+
         info!("Using luminous.dev ad-blocking proxy: {TTV_LOL_PROXY_URL}");
-        
+
         // Add stream arguments in one go to reduce allocations
         cmd.arg(format!("https://www.twitch.tv/{channel}"))
-           .arg(quality)
-           .arg("--player-continuous-http")
-           .arg("--retry-streams")
-           .arg(RETRY_STREAMS)
-           .arg("--twitch-low-latency");
+            .arg(quality)
+            .arg("--player-continuous-http")
+            .arg("--retry-streams")
+            .arg(RETRY_STREAMS)
+            .arg("--twitch-low-latency");
 
         // Hide console window on Windows
         #[cfg(windows)]
@@ -72,7 +74,7 @@ impl ProcessManager {
             Ok(child) => {
                 let pid = child.id();
                 info!("Started streamlink PID: {}", pid);
-                
+
                 self.current_process = Some(child);
                 self.current_url = Some(url.to_string());
                 Ok(())
@@ -88,10 +90,10 @@ impl ProcessManager {
         if let Some(mut process) = self.current_process.take() {
             let pid = process.id();
             info!("Stopping stream PID: {}", pid);
-            
+
             // First, try to kill any VLC processes that might be running
             self.kill_vlc_processes();
-            
+
             // Kill the streamlink process
             if let Err(e) = process.kill() {
                 warn!("Failed to kill process {}: {}", pid, e);
@@ -102,7 +104,7 @@ impl ProcessManager {
             if let Err(e) = process.wait() {
                 warn!("Process {} exited abnormally: {}", pid, e);
             }
-            
+
             self.current_url = None;
             info!("Stream stopped successfully");
             true
@@ -119,46 +121,45 @@ impl ProcessManager {
             match std::process::Command::new("taskkill")
                 .args(["/F", "/IM", "vlc.exe"])
                 .creation_flags(CREATE_NO_WINDOW)
-                .output() {
-                    Ok(output) => {
-                        if output.status.success() {
-                            info!("Successfully killed VLC processes");
+                .output()
+            {
+                Ok(output) => {
+                    if output.status.success() {
+                        info!("Successfully killed VLC processes");
+                    } else {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        if stderr.is_empty() {
+                            info!("No VLC processes were running to kill");
                         } else {
-                            let stderr = String::from_utf8_lossy(&output.stderr);
-                            if stderr.is_empty() {
-                                info!("No VLC processes were running to kill");
-                            } else {
-                                warn!("Failed to kill VLC processes: {}", stderr);
-                            }
+                            warn!("Failed to kill VLC processes: {}", stderr);
                         }
-                    },
-                    Err(e) => {
-                        error!("Failed to execute taskkill command: {}", e);
                     }
                 }
+                Err(e) => {
+                    error!("Failed to execute taskkill command: {}", e);
+                }
+            }
         }
-        
+
         #[cfg(not(windows))]
         {
-            match std::process::Command::new("pkill")
-                .arg("vlc")
-                .output() {
-                    Ok(output) => {
-                        if output.status.success() {
-                            info!("Successfully killed VLC processes");
+            match std::process::Command::new("pkill").arg("vlc").output() {
+                Ok(output) => {
+                    if output.status.success() {
+                        info!("Successfully killed VLC processes");
+                    } else {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        if stderr.contains("no process found") {
+                            info!("No VLC processes were running to kill");
                         } else {
-                            let stderr = String::from_utf8_lossy(&output.stderr);
-                            if stderr.contains("no process found") {
-                                info!("No VLC processes were running to kill");
-                            } else {
-                                warn!("Failed to kill VLC processes: {}", stderr);
-                            }
+                            warn!("Failed to kill VLC processes: {}", stderr);
                         }
-                    },
-                    Err(e) => {
-                        error!("Failed to execute pkill command: {}", e);
                     }
                 }
+                Err(e) => {
+                    error!("Failed to execute pkill command: {}", e);
+                }
+            }
         }
     }
 
@@ -176,17 +177,17 @@ impl ProcessManager {
     fn is_streamlink_available(&self) -> bool {
         use std::sync::OnceLock;
         static STREAMLINK_AVAILABLE: OnceLock<bool> = OnceLock::new();
-        
+
         *STREAMLINK_AVAILABLE.get_or_init(|| {
             // Check if streamlink is in PATH by trying to run --version
             let mut cmd = Command::new("streamlink");
             cmd.arg("--version");
-            
+
             #[cfg(windows)]
             cmd.creation_flags(CREATE_NO_WINDOW);
-            
+
             cmd.stdout(Stdio::null()).stderr(Stdio::null());
-            
+
             match cmd.status() {
                 Ok(status) => {
                     let available = status.success();
@@ -233,7 +234,7 @@ mod tests {
     #[test]
     fn test_multiple_stop_calls() {
         let mut manager = ProcessManager::new();
-        
+
         // Stopping when no stream is running should return false
         assert!(!manager.stop_stream());
         assert!(false == manager.stop_stream());

@@ -1,5 +1,5 @@
-use tauri::{Window, AppHandle, App};
 use crate::error::{StreamFlowError, StreamFlowResult};
+use tauri::{App, AppHandle, Window};
 
 /// Window management utilities for StreamFlow-Tauri
 pub struct WindowManager;
@@ -121,49 +121,39 @@ impl WindowManager {
 #[tauri::command]
 pub async fn minimize() -> Result<String, String> {
     match tauri::AppHandle::current().get_webview_window("main") {
-        Some(window) => {
-            match window.minimize() {
-                Ok(_) => Ok("Window minimized".to_string()),
-                Err(e) => Err(format!("Failed to minimize window: {}", e))
-            }
-        }
-        None => Err("Main window not found".to_string())
+        Some(window) => match window.minimize() {
+            Ok(_) => Ok("Window minimized".to_string()),
+            Err(e) => Err(format!("Failed to minimize window: {}", e)),
+        },
+        None => Err("Main window not found".to_string()),
     }
 }
 
 #[tauri::command]
 pub async fn toggle_maximize() -> Result<String, String> {
     match tauri::AppHandle::current().get_webview_window("main") {
-        Some(window) => {
-            match window.is_maximized() {
-                Ok(true) => {
-                    match window.unmaximize() {
-                        Ok(_) => Ok("Window restored".to_string()),
-                        Err(e) => Err(format!("Failed to restore window: {}", e))
-                    }
-                }
-                Ok(false) => {
-                    match window.maximize() {
-                        Ok(_) => Ok("Window maximized".to_string()),
-                        Err(e) => Err(format!("Failed to maximize window: {}", e))
-                    }
-                }
-                Err(e) => Err(format!("Failed to check window state: {}", e))
-            }
-        }
-        None => Err("Main window not found".to_string())
+        Some(window) => match window.is_maximized() {
+            Ok(true) => match window.unmaximize() {
+                Ok(_) => Ok("Window restored".to_string()),
+                Err(e) => Err(format!("Failed to restore window: {}", e)),
+            },
+            Ok(false) => match window.maximize() {
+                Ok(_) => Ok("Window maximized".to_string()),
+                Err(e) => Err(format!("Failed to maximize window: {}", e)),
+            },
+            Err(e) => Err(format!("Failed to check window state: {}", e)),
+        },
+        None => Err("Main window not found".to_string()),
     }
 }
 
 #[tauri::command]
 pub async fn close() -> Result<String, String> {
     match tauri::AppHandle::current().get_webview_window("main") {
-        Some(window) => {
-            match window.close() {
-                Ok(_) => Ok("Window closed".to_string()),
-                Err(e) => Err(format!("Failed to close window: {}", e))
-            }
-        }
-        None => Err("Main window not found".to_string())
+        Some(window) => match window.close() {
+            Ok(_) => Ok("Window closed".to_string()),
+            Err(e) => Err(format!("Failed to close window: {}", e)),
+        },
+        None => Err("Main window not found".to_string()),
     }
 }

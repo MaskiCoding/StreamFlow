@@ -70,18 +70,21 @@ impl StreamlinkManager {
                 Ok(output) => {
                     let output_str = String::from_utf8_lossy(&output.stdout);
                     output_str.contains("vlc.exe")
-                },
+                }
                 Err(e) => {
-                    log::warn!("Failed to execute tasklist command for VLC detection: {}", e);
+                    log::warn!(
+                        "Failed to execute tasklist command for VLC detection: {}",
+                        e
+                    );
                     false
                 }
             };
-            
+
             // Update cache with fresh result
             if let Ok(mut cache) = VLC_CACHE.lock() {
                 *cache = Some((is_running, std::time::SystemTime::now()));
             }
-            
+
             return is_running;
         }
 
@@ -98,13 +101,8 @@ impl StreamlinkManager {
                 }
             }
 
-            let is_running = match std::process::Command::new("pgrep")
-                .arg("vlc")
-                .output()
-            {
-                Ok(output) => {
-                    !output.stdout.is_empty()
-                },
+            let is_running = match std::process::Command::new("pgrep").arg("vlc").output() {
+                Ok(output) => !output.stdout.is_empty(),
                 Err(e) => {
                     log::warn!("Failed to execute pgrep command for VLC detection: {}", e);
                     false
@@ -124,7 +122,7 @@ impl StreamlinkManager {
     #[allow(dead_code)]
     pub fn test_stream_availability(&self, url: &str) -> bool {
         use std::process::{Command, Stdio};
-        
+
         let channel = match crate::twitch::TwitchValidator::extract_channel_name(url) {
             Some(c) => c,
             None => return false,
@@ -132,10 +130,10 @@ impl StreamlinkManager {
 
         let mut cmd = Command::new("streamlink");
         cmd.arg(format!("https://www.twitch.tv/{}", channel))
-           .arg("--stream-info")
-           .arg("--json")
-           .stdout(Stdio::piped())
-           .stderr(Stdio::null());
+            .arg("--stream-info")
+            .arg("--json")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null());
 
         #[cfg(windows)]
         cmd.creation_flags(CREATE_NO_WINDOW);
@@ -153,7 +151,11 @@ impl StreamlinkManager {
                 }
             }
             Err(e) => {
-                log::warn!("Failed to execute streamlink test for channel {}: {}", channel, e);
+                log::warn!(
+                    "Failed to execute streamlink test for channel {}: {}",
+                    channel,
+                    e
+                );
                 false
             }
         }
@@ -171,7 +173,7 @@ mod tests {
         assert!(manager.get_current_url().is_none());
     }
 
-    #[test] 
+    #[test]
     fn test_vlc_detection() {
         let manager = StreamlinkManager::new();
         // This will depend on whether VLC is actually running

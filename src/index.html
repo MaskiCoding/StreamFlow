@@ -1,120 +1,146 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StreamFlow</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <div class="app-container">
-        <!-- Title Section -->
-        <div class="title-section">
-            <h1 class="app-title">StreamFlow</h1>
-        </div>
+      <!-- Title Section -->
+      <div class="title-section">
+        <h1 class="app-title">StreamFlow</h1>
+      </div>
 
-        <!-- URL Input Section -->
-        <div class="url-section">
-            <div class="url-input-container">
-                <input
-                    type="text"
-                    id="url-input"
-                    class="url-input"
-                    placeholder="Enter username"
-                    autocomplete="off"
-                    autocorrect="off"
-                    autocapitalize="off"
-                    spellcheck="false"
-                    data-form-type="other"
-                />
-                <select id="quality-select" class="quality-select">
-                    <option value="best">best</option>
-                    <option value="1080p">1080p</option>
-                    <option value="720p">720p</option>
-                    <option value="480p">480p</option>
-                    <option value="360p">360p</option>
-                    <option value="160p">160p</option>
-                    <option value="worst">worst</option>
-                </select>
+      <!-- URL Input Section -->
+      <div class="url-section">
+        <div class="url-input-container">
+          <input
+            type="text"
+            id="url-input"
+            class="url-input"
+            placeholder="Enter username"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+          />
+          <select id="quality-select" class="quality-select">
+            <option value="best">best</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+            <option value="360p">360p</option>
+            <option value="160p">160p</option>
+            <option value="worst">worst</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Main Controls Section -->
+      <div class="controls-section">
+        <button id="main-action-btn" class="main-action-btn">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">Watch Stream</span>
+        </button>
+      </div>
+
+      <!-- Saved Streams Section -->
+      <div class="quick-streams-section">
+        <div class="quick-streams-header">
+          <h3>Saved Streams</h3>
+          <button
+            id="refresh-status-btn"
+            class="refresh-status-btn"
+            title="Check stream status"
+          >
+            Check Streams
+          </button>
+        </div>
+        <div class="quick-streams-grid">
+          <div class="quick-stream-slot" data-index="0">
+            <div class="empty-slot">
+              <span class="plus-icon">+</span>
             </div>
-        </div>
-
-        <!-- Main Controls Section -->
-        <div class="controls-section">
-            <button id="main-action-btn" class="main-action-btn">
-                <span class="btn-icon">▶</span>
-                <span class="btn-text">Watch Stream</span>
-            </button>
-        </div>
-
-        <!-- Saved Streams Section -->
-        <div class="quick-streams-section">
-            <div class="quick-streams-header">
-                <h3>Saved Streams</h3>
-                <button id="refresh-status-btn" class="refresh-status-btn" title="Check stream status">
-                    Check Streams
-                </button>
+          </div>
+          <div class="quick-stream-slot" data-index="1">
+            <div class="empty-slot">
+              <span class="plus-icon">+</span>
             </div>
-            <div class="quick-streams-grid">
-                <div class="quick-stream-slot" data-index="0">
-                    <div class="empty-slot">
-                        <span class="plus-icon">+</span>
-                    </div>
-                </div>
-                <div class="quick-stream-slot" data-index="1">
-                    <div class="empty-slot">
-                        <span class="plus-icon">+</span>
-                    </div>
-                </div>
-                <div class="quick-stream-slot" data-index="2">
-                    <div class="empty-slot">
-                        <span class="plus-icon">+</span>
-                    </div>
-                </div>
-                <div class="quick-stream-slot" data-index="3">
-                    <div class="empty-slot">
-                        <span class="plus-icon">+</span>
-                    </div>
-                </div>
+          </div>
+          <div class="quick-stream-slot" data-index="2">
+            <div class="empty-slot">
+              <span class="plus-icon">+</span>
             </div>
-        </div>
-
-        <!-- Status Section -->
-        <div class="status-section">
-            <div class="status-indicator">
-                <span class="status-dot" id="status-dot"></span>
-                <span class="status-text" id="status-text">Idle</span>
+          </div>
+          <div class="quick-stream-slot" data-index="3">
+            <div class="empty-slot">
+              <span class="plus-icon">+</span>
             </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Message Display -->
-        <div id="message-display" class="message-display"></div>
+      <!-- Status Section -->
+      <div class="status-section">
+        <div class="status-indicator">
+          <span class="status-dot" id="status-dot"></span>
+          <span class="status-text" id="status-text">Idle</span>
+        </div>
+      </div>
+
+      <!-- Message Display -->
+      <div id="message-display" class="message-display"></div>
     </div>
 
     <!-- Context Menu for Saved Streams -->
     <div id="context-menu" class="context-menu">
-        <div class="context-menu-item" data-action="remove">Remove</div>
+      <div class="context-menu-item" data-action="remove">Remove</div>
     </div>
 
     <!-- Add Stream Modal -->
     <div id="add-stream-modal" class="modal">
-        <div class="modal-content">
-            <h3>Add Stream</h3>
-            <div class="modal-form">
-                <label for="stream-name">Stream Name:</label>
-                <input type="text" id="stream-name" placeholder="Enter stream name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other">
+      <div class="modal-content">
+        <h3>Add Stream</h3>
+        <div class="modal-form">
+          <label for="stream-name">Stream Name:</label>
+          <input
+            type="text"
+            id="stream-name"
+            placeholder="Enter stream name"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+          />
 
-                <label for="stream-url">Twitch Username:</label>
-                <input type="text" id="stream-url" placeholder="Enter username" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other">
-                
-                <div class="modal-buttons">
-                    <button id="cancel-add-stream" class="modal-btn cancel-btn">Cancel</button>
-                    <button id="confirm-add-stream" class="modal-btn confirm-btn">Add</button>
-                </div>
-            </div>
+          <label for="stream-url">Twitch Username:</label>
+          <input
+            type="text"
+            id="stream-url"
+            placeholder="Enter username"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+          />
+
+          <div class="modal-buttons">
+            <button id="cancel-add-stream" class="modal-btn cancel-btn">
+              Cancel
+            </button>
+            <button id="confirm-add-stream" class="modal-btn confirm-btn">
+              Add
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

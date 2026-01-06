@@ -54,7 +54,10 @@ pub fn get_app_data_dir() -> std::path::PathBuf {
     #[cfg(target_os = "macos")]
     {
         if let Ok(home) = env::var("HOME") {
-            Path::new(&home).join("Library").join("Application Support").join("StreamFlow-Tauri")
+            Path::new(&home)
+                .join("Library")
+                .join("Application Support")
+                .join("StreamFlow-Tauri")
         } else {
             Path::new(".").join("data")
         }
@@ -64,7 +67,10 @@ pub fn get_app_data_dir() -> std::path::PathBuf {
         if let Ok(xdg_data_home) = env::var("XDG_DATA_HOME") {
             Path::new(&xdg_data_home).join("streamflow-tauri")
         } else if let Ok(home) = env::var("HOME") {
-            Path::new(&home).join(".local").join("share").join("streamflow-tauri")
+            Path::new(&home)
+                .join(".local")
+                .join("share")
+                .join("streamflow-tauri")
         } else {
             Path::new(".").join("data")
         }
@@ -84,7 +90,10 @@ pub fn get_config_dir() -> std::path::PathBuf {
     #[cfg(target_os = "macos")]
     {
         if let Ok(home) = env::var("HOME") {
-            Path::new(&home).join("Library").join("Preferences").join("StreamFlow-Tauri")
+            Path::new(&home)
+                .join("Library")
+                .join("Preferences")
+                .join("StreamFlow-Tauri")
         } else {
             Path::new(".").join("config")
         }

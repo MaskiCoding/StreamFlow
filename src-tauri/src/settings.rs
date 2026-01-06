@@ -38,8 +38,8 @@ impl Default for Settings {
 impl Settings {
     // Get the app data directory path
     fn get_app_data_dir() -> Result<std::path::PathBuf> {
-        let app_data = dirs::data_dir()
-            .ok_or_else(|| anyhow::anyhow!("Could not find AppData directory"))?;
+        let app_data =
+            dirs::data_dir().ok_or_else(|| anyhow::anyhow!("Could not find AppData directory"))?;
         Ok(app_data.join("StreamFlow-Tauri"))
     }
 
@@ -52,9 +52,12 @@ impl Settings {
     // Load settings from file with performance optimizations
     pub fn load() -> Result<Self> {
         let settings_path = Self::get_settings_path()?;
-        
+
         if !settings_path.exists() {
-            log::info!("Settings file not found, creating with defaults: {:?}", settings_path);
+            log::info!(
+                "Settings file not found, creating with defaults: {:?}",
+                settings_path
+            );
             let default_settings = Self::default();
             default_settings.save()?;
             return Ok(default_settings);
@@ -63,10 +66,10 @@ impl Settings {
         // Read and parse in one go to reduce I/O
         let contents = std::fs::read_to_string(&settings_path)
             .map_err(|e| anyhow::anyhow!("Failed to read settings file: {}", e))?;
-        
+
         let settings: Settings = serde_json::from_str(&contents)
             .map_err(|e| anyhow::anyhow!("Failed to parse settings JSON: {}", e))?;
-        
+
         log::info!("Settings loaded successfully from: {:?}", settings_path);
         Ok(settings)
     }
@@ -74,7 +77,7 @@ impl Settings {
     // Save settings to file with atomic write for data integrity
     pub fn save(&self) -> Result<()> {
         let app_dir = Self::get_app_data_dir()?;
-        
+
         // Ensure directory exists
         if !app_dir.exists() {
             std::fs::create_dir_all(&app_dir)
@@ -92,7 +95,7 @@ impl Settings {
         // Atomic write: write to temp file first, then rename
         std::fs::write(&temp_path, json_content)
             .map_err(|e| anyhow::anyhow!("Failed to write temp settings file: {}", e))?;
-        
+
         std::fs::rename(&temp_path, &settings_path)
             .map_err(|e| anyhow::anyhow!("Failed to move temp settings file: {}", e))?;
 
@@ -155,14 +158,14 @@ mod tests {
     #[test]
     fn test_add_quick_stream() {
         let mut settings = Settings::default();
-        
+
         let stream = SavedStream {
             name: "Test Stream".to_string(),
             url: "https://www.twitch.tv/test".to_string(),
             status: StreamStatus::Unknown,
             last_checked: None,
         };
-        
+
         settings.add_quick_stream(stream.clone());
         assert_eq!(settings.quick_streams.len(), 1);
         assert_eq!(settings.quick_streams[0].name, "Test Stream");
@@ -171,7 +174,7 @@ mod tests {
     #[test]
     fn test_quick_stream_limit() {
         let mut settings = Settings::default();
-        
+
         // Add 5 streams (more than the 4 limit)
         for i in 0..5 {
             let stream = SavedStream {
@@ -182,7 +185,7 @@ mod tests {
             };
             settings.add_quick_stream(stream);
         }
-        
+
         // Should only have 4 streams, and the first one should be removed
         assert_eq!(settings.quick_streams.len(), 4);
         assert_eq!(settings.quick_streams[0].name, "Stream 1"); // Stream 0 was removed
@@ -192,20 +195,20 @@ mod tests {
     #[test]
     fn test_remove_quick_stream() {
         let mut settings = Settings::default();
-        
+
         let stream = SavedStream {
             name: "Test Stream".to_string(),
             url: "https://www.twitch.tv/test".to_string(),
             status: StreamStatus::Unknown,
             last_checked: None,
         };
-        
+
         settings.add_quick_stream(stream);
         assert_eq!(settings.quick_streams.len(), 1);
-        
+
         assert!(settings.remove_quick_stream(0));
         assert!(settings.quick_streams.is_empty());
-        
+
         // Try to remove from empty list
         assert!(!settings.remove_quick_stream(0));
     }
@@ -213,18 +216,18 @@ mod tests {
     #[test]
     fn test_update_stream_status() {
         let mut settings = Settings::default();
-        
+
         let stream = SavedStream {
             name: "Test Stream".to_string(),
             url: "https://www.twitch.tv/test".to_string(),
             status: StreamStatus::Unknown,
             last_checked: None,
         };
-        
+
         settings.add_quick_stream(stream);
-        
+
         settings.update_stream_status("https://www.twitch.tv/test", StreamStatus::Online);
-        
+
         let updated_stream = &settings.quick_streams[0];
         assert_eq!(updated_stream.status, StreamStatus::Online);
         assert!(updated_stream.last_checked.is_some());
@@ -233,20 +236,20 @@ mod tests {
     #[test]
     fn test_get_stream_by_url() {
         let mut settings = Settings::default();
-        
+
         let stream = SavedStream {
             name: "Test Stream".to_string(),
             url: "https://www.twitch.tv/test".to_string(),
             status: StreamStatus::Unknown,
             last_checked: None,
         };
-        
+
         settings.add_quick_stream(stream);
-        
+
         let found = settings.get_stream_by_url("https://www.twitch.tv/test");
         assert!(found.is_some());
         assert_eq!(found.unwrap().name, "Test Stream");
-        
+
         let not_found = settings.get_stream_by_url("https://www.twitch.tv/notfound");
         assert!(not_found.is_none());
     }
