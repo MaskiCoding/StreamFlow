@@ -69,6 +69,7 @@ jobs:
     steps:
       - name: Wait for Auto-fix Push
         if: needs.auto-fix.result == 'success'
+        working-directory: ${{ github.workspace }}
         run: Start-Sleep -Seconds 5
         shell: pwsh
 
@@ -79,6 +80,7 @@ jobs:
           fetch-depth: 0
 
       - name: Pull Latest Changes
+        working-directory: ${{ github.workspace }}
         run: |
           git pull origin ${{ github.ref_name }} || true
         shell: bash
@@ -119,6 +121,7 @@ jobs:
           fetch-depth: 0
 
       - name: Pull Latest Changes
+        working-directory: ${{ github.workspace }}
         run: |
           git pull origin ${{ github.ref_name }} || true
         shell: bash
