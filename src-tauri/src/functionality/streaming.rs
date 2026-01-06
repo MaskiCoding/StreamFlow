@@ -39,8 +39,12 @@ pub async fn start_stream(
 ) -> StreamFlowResult<String> {
     log::info!("Starting stream: {} with quality: {}", url, quality);
 
-    let mut manager = state.streamlink_manager.lock().unwrap();
-    let mut current = state.current_stream.lock().unwrap();
+    let mut manager = state.streamlink_manager.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire stream manager lock".to_string())
+    })?;
+    let mut current = state.current_stream.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire current stream lock".to_string())
+    })?;
 
     match manager.start_stream(&url, &quality) {
         Ok(()) => {
@@ -58,8 +62,12 @@ pub async fn start_stream(
 pub async fn stop_stream(state: State<'_, AppState>) -> StreamFlowResult<String> {
     log::info!("Stopping current stream");
 
-    let mut manager = state.streamlink_manager.lock().unwrap();
-    let mut current = state.current_stream.lock().unwrap();
+    let mut manager = state.streamlink_manager.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire stream manager lock".to_string())
+    })?;
+    let mut current = state.current_stream.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire current stream lock".to_string())
+    })?;
 
     if manager.stop_stream() {
         *current = None;
@@ -73,13 +81,17 @@ pub async fn stop_stream(state: State<'_, AppState>) -> StreamFlowResult<String>
 
 #[tauri::command]
 pub async fn get_current_stream(state: State<'_, AppState>) -> StreamFlowResult<Option<String>> {
-    let current = state.current_stream.lock().unwrap();
+    let current = state.current_stream.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire current stream lock".to_string())
+    })?;
     Ok(current.clone())
 }
 
 #[tauri::command]
 pub async fn is_vlc_running(state: State<'_, AppState>) -> StreamFlowResult<bool> {
-    let manager = state.streamlink_manager.lock().unwrap();
+    let manager = state.streamlink_manager.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire stream manager lock".to_string())
+    })?;
     Ok(manager.is_vlc_running())
 }
 
@@ -100,7 +112,9 @@ pub async fn normalize_twitch_url(url: String) -> StreamFlowResult<String> {
 
 #[tauri::command]
 pub async fn load_settings(state: State<'_, AppState>) -> StreamFlowResult<Settings> {
-    let settings = state.settings.lock().unwrap();
+    let settings = state.settings.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire settings lock".to_string())
+    })?;
     Ok(settings.clone())
 }
 
@@ -109,7 +123,9 @@ pub async fn save_settings(
     new_settings: Settings,
     state: State<'_, AppState>,
 ) -> StreamFlowResult<String> {
-    let mut settings = state.settings.lock().unwrap();
+    let mut settings = state.settings.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire settings lock".to_string())
+    })?;
     *settings = new_settings.clone();
 
     match new_settings.save() {
@@ -130,7 +146,9 @@ pub async fn add_quick_stream(
     url: String,
     state: State<'_, AppState>,
 ) -> StreamFlowResult<String> {
-    let mut settings = state.settings.lock().unwrap();
+    let mut settings = state.settings.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire settings lock".to_string())
+    })?;
 
     let new_stream = SavedStream {
         name,
@@ -162,7 +180,9 @@ pub async fn remove_quick_stream(
     index: usize,
     state: State<'_, AppState>,
 ) -> StreamFlowResult<String> {
-    let mut settings = state.settings.lock().unwrap();
+    let mut settings = state.settings.lock().map_err(|_| {
+        StreamFlowError::ProcessError("Failed to acquire settings lock".to_string())
+    })?;
 
     if index < settings.quick_streams.len() {
         settings.quick_streams.remove(index);
@@ -196,7 +216,10 @@ pub fn cleanup_processes(app_state: &AppState) {
     log::info!("Performing application cleanup...");
 
     // Stop any active streams
-    let mut manager = app_state.streamlink_manager.lock().unwrap();
+    let Ok(mut manager) = app_state.streamlink_manager.lock() else {
+        log::error!("Failed to acquire stream manager lock during cleanup");
+        return;
+    };
     if manager.is_streaming() {
         log::info!("Stopping active stream during cleanup");
         let _ = manager.stop_stream();
@@ -344,7 +367,9 @@ pub async fn update_quick_stream_status(state: State<'_, AppState>) -> StreamFlo
 
     // Get the streams to check without holding the lock
     let streams_to_check: Vec<(usize, String, String)> = {
-        let settings = state.settings.lock().unwrap();
+        let settings = state.settings.lock().map_err(|_| {
+            StreamFlowError::ProcessError("Failed to acquire settings lock".to_string())
+        })?;
         settings
             .quick_streams
             .iter()
@@ -402,7 +427,9 @@ pub async fn update_quick_stream_status(state: State<'_, AppState>) -> StreamFlo
 
     // Apply all the status updates
     {
-        let mut settings = state.settings.lock().unwrap();
+        let mut settings = state.settings.lock().map_err(|_| {
+            StreamFlowError::ProcessError("Failed to acquire settings lock".to_string())
+        })?;
         for (index, status) in status_updates {
             if index < settings.quick_streams.len() {
                 settings.quick_streams[index].status = status;
