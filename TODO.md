@@ -4,92 +4,99 @@
 
 - [x] **1. Fix CI/CD environment variable passing**
   - File: `.github/workflows/ci.yml`
-  - Issue: `RELEASE_VERSION` not passed between jobs (lines 131, 132, 167, 176)
+  - Issue: `RELEASE_VERSION` not passed between jobs
   - Fix: Use job outputs instead of env vars
-  - ✅ DONE: Added job outputs and proper variable passing
+  - ✅ DONE
 
 - [x] **2. Remove Cargo.lock from .gitignore**
-  - File: `.gitignore` (line 3)
+  - File: `.gitignore`
   - Issue: Causes non-reproducible builds and CI cache failures
-  - Fix: Remove `Cargo.lock` from gitignore, generate and commit it
-  - ✅ DONE: Updated .gitignore (run `cargo generate-lockfile` locally)
+  - Fix: Remove `Cargo.lock` from gitignore
+  - ✅ DONE
 
 - [x] **3. Fix duplicate invoke declaration**
-  - File: `src/script.js` (lines 3 and 199)
+  - File: `src/script.js`
   - Issue: SyntaxError - `const { invoke }` declared twice
-  - Fix: Remove line 199
-  - ✅ DONE: Removed duplicate declaration
+  - Fix: Remove duplicate
+  - ✅ DONE
 
 - [x] **4. Fix missing events.js import**
-  - File: `src/script.js` (line 842)
+  - File: `src/script.js`
   - Issue: `import('./events.js')` references non-existent file
-  - Fix: Replace with inline `isVlcRunning()` check
-  - ✅ DONE: Replaced with inline async check
+  - Fix: Replace with inline VLC check
+  - ✅ DONE
 
 - [x] **5. Add #[tauri::command] to get_platform**
-  - File: `src-tauri/src/util/helpers.rs` (line 5)
+  - File: `src-tauri/src/util/helpers.rs`
   - Issue: Function registered as command but missing attribute
   - Fix: Add `#[tauri::command]` attribute
-  - ✅ DONE: Added attribute
+  - ✅ DONE
 
 - [x] **6. Initialize Tauri plugins**
-  - File: `src-tauri/src/main.rs` (line 41)
+  - File: `src-tauri/src/main.rs`
   - Issue: Plugins declared in Cargo.toml but never initialized
   - Fix: Add `.plugin()` calls for shell, process, http
-  - ✅ DONE: Added plugin initialization
+  - ✅ DONE
 
 ## 🟡 Major (Should Fix)
 
 - [x] **7. Sync version numbers**
-  - Files: `src-tauri/Cargo.toml` (1.0.0) vs `package.json` (1.0.1)
-  - Fix: Update all to 1.1.0
-  - ✅ DONE: Updated Cargo.toml, package.json, tauri.conf.json to 1.1.0
+  - Files: All project files
+  - Fix: Updated to 1.1.0
+  - ✅ DONE
 
 - [x] **8. Add working-directory to CI cargo commands**
   - File: `.github/workflows/ci.yml`
-  - Issue: Cargo commands run from root, not src-tauri/
-  - Fix: Add `working-directory: src-tauri` or `--manifest-path`
-  - ✅ DONE: Added working-directory to all jobs
+  - Fix: Added working-directory to all jobs
+  - ✅ DONE
 
 - [x] **9. Add versioned release trigger**
   - File: `.github/workflows/ci.yml`
-  - Issue: No `v*.*.*` tag trigger for semantic releases
-  - Fix: Add tags trigger to workflow
-  - ✅ DONE: Added versioned-release job with tag trigger
+  - Fix: Added versioned-release job with tag trigger
+  - ✅ DONE
 
 - [x] **10. Add frontend linting to CI**
   - File: `.github/workflows/ci.yml`
-  - Issue: JavaScript errors not caught in CI
-  - Fix: Add Prettier check step
-  - ✅ DONE: Added frontend-lint job
+  - Fix: Added auto-fix job with Prettier and cargo fmt
+  - ✅ DONE
 
-## 🟢 Minor (Nice to Have)
+- [x] **11. Fix branch naming (master → main)**
+  - All workflow references updated to use `main`
+  - ✅ DONE
 
-- [ ] **11. Consolidate duplicate types**
-  - Files: `config.rs` and `settings.rs` both define `SavedStream`, `StreamStatus`
-  - Fix: Create shared `types.rs` module
-
-- [ ] **12. Remove unused dependencies**
-  - File: `src-tauri/Cargo.toml`
-  - Issue: `base64`, `gumdrop`, `winapi` never used
-  - Fix: Remove from Cargo.toml
-
-- [ ] **13. Fix OnceLock caching issue**
+- [x] **12. Fix OnceLock caching issue**
   - File: `src-tauri/src/streamlink.rs`
-  - Issue: VLC availability cache can never update
-  - Fix: Use `Mutex` instead of `OnceLock`
+  - Issue: VLC availability cache could never update
+  - Fix: Changed to Mutex for updateable caching
+  - ✅ DONE
 
-- [ ] **14. Improve mutex error handling**
+- [x] **13. Improve mutex error handling**
   - File: `src-tauri/src/functionality/streaming.rs`
   - Issue: `.unwrap()` on mutex locks can panic
   - Fix: Use `.map_err()` for graceful handling
+  - ✅ DONE
+
+## 🟢 Minor (Nice to Have / Tech Debt)
+
+- [ ] **14. Consolidate duplicate types**
+  - Files: `config.rs` and `settings.rs` both define `SavedStream`, `StreamStatus`
+  - Note: Low priority - both work independently, just duplicated code
+  - Suggestion: Create shared `types.rs` module in future refactor
 
 ---
 
-## Progress
+## Progress Summary
 
 | Priority | Total | Done |
 |----------|-------|------|
 | 🔴 Critical | 6 | 6 |
-| 🟡 Major | 4 | 4 |
-| 🟢 Minor | 4 | 0 |
+| 🟡 Major | 7 | 7 |
+| 🟢 Minor | 1 | 0 |
+
+## CI/CD Features
+
+- **Auto-fix formatting**: Automatically formats code on push and commits fixes
+- **Code quality**: Runs rustfmt and clippy checks
+- **Build**: Compiles and tests on Windows x64 MSVC
+- **Rolling release**: Creates artifacts on every push to main
+- **Versioned release**: Creates GitHub releases when pushing `v*.*.*` tags
