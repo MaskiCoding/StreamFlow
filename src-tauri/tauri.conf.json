@@ -40,7 +40,7 @@
     }
   },
   "productName": "StreamFlow",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "identifier": "com.maskicoding.streamflow.tauri",
   "plugins": {},
   "app": {

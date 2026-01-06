@@ -2,6 +2,7 @@ use std::env;
 use std::path::Path;
 
 /// Get the platform name as a string
+#[tauri::command]
 pub fn get_platform() -> &'static str {
     #[cfg(target_os = "windows")]
     {

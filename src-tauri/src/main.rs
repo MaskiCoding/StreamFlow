@@ -41,6 +41,9 @@ fn main() {
    log::info!("StreamFlow-Tauri application starting...");
 
    tauri::Builder::default()
+       .plugin(tauri_plugin_shell::init())
+       .plugin(tauri_plugin_process::init())
+       .plugin(tauri_plugin_http::init())
        .manage(app_state)
        .invoke_handler(tauri::generate_handler![
            // Streaming commands

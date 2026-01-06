@@ -195,8 +195,7 @@ function disableAutocomplete() {
     });
 }
 // API functions
-// Tauri API calls
-const { invoke } = window.__TAURI__.core;
+// Tauri API calls (invoke already declared at top of file)
 
 // Stream management
 async function startStream(url, quality) {
@@ -836,12 +835,20 @@ async function initApp() {
 window.addEventListener('focus', updateUI);
 
 // Periodic status checks
-setInterval(() => {
+setInterval(async () => {
     if (appState.isStreaming) {
-        // Import the check function dynamically or move it to a better place
-        import('./events.js').then(module => {
-            module.checkVlcStatus();
-        });
+        // Check if VLC is still running
+        try {
+            const vlcRunning = await isVlcRunning();
+            if (!vlcRunning) {
+                appState.isStreaming = false;
+                appState.currentUrl = '';
+                updateUI();
+                showMessage('Stream ended - VLC was closed', 'info');
+            }
+        } catch (e) {
+            console.error('Error checking VLC status:', e);
+        }
     }
 }, 30000); // Check every 30 seconds
 

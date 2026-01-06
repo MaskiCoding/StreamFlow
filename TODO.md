@@ -14,31 +14,36 @@
   - Fix: Remove `Cargo.lock` from gitignore, generate and commit it
   - ✅ DONE: Updated .gitignore (run `cargo generate-lockfile` locally)
 
-- [ ] **3. Fix duplicate invoke declaration**
+- [x] **3. Fix duplicate invoke declaration**
   - File: `src/script.js` (lines 3 and 199)
   - Issue: SyntaxError - `const { invoke }` declared twice
   - Fix: Remove line 199
+  - ✅ DONE: Removed duplicate declaration
 
-- [ ] **4. Fix missing events.js import**
+- [x] **4. Fix missing events.js import**
   - File: `src/script.js` (line 842)
   - Issue: `import('./events.js')` references non-existent file
   - Fix: Replace with inline `isVlcRunning()` check
+  - ✅ DONE: Replaced with inline async check
 
-- [ ] **5. Add #[tauri::command] to get_platform**
+- [x] **5. Add #[tauri::command] to get_platform**
   - File: `src-tauri/src/util/helpers.rs` (line 5)
   - Issue: Function registered as command but missing attribute
   - Fix: Add `#[tauri::command]` attribute
+  - ✅ DONE: Added attribute
 
-- [ ] **6. Initialize Tauri plugins**
+- [x] **6. Initialize Tauri plugins**
   - File: `src-tauri/src/main.rs` (line 41)
   - Issue: Plugins declared in Cargo.toml but never initialized
   - Fix: Add `.plugin()` calls for shell, process, http
+  - ✅ DONE: Added plugin initialization
 
 ## 🟡 Major (Should Fix)
 
-- [ ] **7. Sync version numbers**
+- [x] **7. Sync version numbers**
   - Files: `src-tauri/Cargo.toml` (1.0.0) vs `package.json` (1.0.1)
-  - Fix: Update Cargo.toml to 1.0.1
+  - Fix: Update all to 1.1.0
+  - ✅ DONE: Updated Cargo.toml, package.json, tauri.conf.json to 1.1.0
 
 - [x] **8. Add working-directory to CI cargo commands**
   - File: `.github/workflows/ci.yml`
@@ -85,6 +90,6 @@
 
 | Priority | Total | Done |
 |----------|-------|------|
-| 🔴 Critical | 6 | 0 |
-| 🟡 Major | 4 | 0 |
+| 🔴 Critical | 6 | 6 |
+| 🟡 Major | 4 | 4 |
 | 🟢 Minor | 4 | 0 |
