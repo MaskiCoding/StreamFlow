@@ -1,6 +1,6 @@
 # Rust build artifacts
 target/
-Cargo.lock
+# Note: Cargo.lock is tracked for reproducible builds
 
 # Node.js build artifacts
 node_modules/
@@ -30,7 +30,7 @@ logs/
 
 # Tauri specific
 src-tauri/target/
-src-tauri/Cargo.lock
+# Note: src-tauri/Cargo.lock is tracked for reproducible builds
 src-tauri/bin/
 
 # Temporary files

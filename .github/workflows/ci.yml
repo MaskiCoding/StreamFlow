@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*.*.*']
   pull_request:
     branches: [main]
 
@@ -12,13 +13,31 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
-  VERSION_DATE: ${{ format('{0}.{1}.{2}', github.run_number, github.run_id, github.run_attempt) }}
 
 jobs:
+  # Frontend linting
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check Frontend Formatting
+        run: npx prettier --check "src/**/*.{js,css,html}"
+
   # Code quality checks
   code-quality:
     name: Code Quality
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src-tauri
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,6 +47,8 @@ jobs:
 
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
 
       - name: Install Dependencies
         run: |
@@ -44,6 +65,9 @@ jobs:
   build:
     name: Build and Test
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src-tauri
     strategy:
       matrix:
         target: [x86_64-pc-windows-msvc, x86_64-pc-windows-gnu]
@@ -60,10 +84,13 @@ jobs:
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: src-tauri
+          key: ${{ matrix.target }}
 
       - name: Install GNU target dependencies
         if: matrix.target == 'x86_64-pc-windows-gnu'
+        shell: pwsh
+        working-directory: .
         run: |
           # Install MinGW-w64 for GNU target
           choco install mingw --params "/Architecture:x86_64"
@@ -81,8 +108,10 @@ jobs:
   release:
     name: Create Release Artifacts
     runs-on: windows-latest
-    needs: [code-quality, build]
+    needs: [frontend-lint, code-quality, build]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      release_version: ${{ steps.version.outputs.release_version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -95,7 +124,8 @@ jobs:
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: release-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: src-tauri
+          key: release
 
       - name: Set Version Info
         id: version
@@ -104,13 +134,15 @@ jobs:
           FULL_SHA: ${{ github.sha }}
         run: |
           $BUILD_DATE = Get-Date -Format 'yyyyMMdd'
-          $SHORT_SHA = $FULL_SHA.Substring(0, 7)
-          $RELEASE_VERSION = "${BUILD_DATE}.$SHORT_SHA"
+          $SHORT_SHA = $env:FULL_SHA.Substring(0, 7)
+          $RELEASE_VERSION = "${BUILD_DATE}.${SHORT_SHA}"
           echo "BUILD_DATE=$BUILD_DATE" >> $env:GITHUB_ENV
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $env:GITHUB_ENV
+          echo "release_version=$RELEASE_VERSION" >> $env:GITHUB_OUTPUT
           echo "Version: $RELEASE_VERSION"
 
       - name: Build Release
+        working-directory: src-tauri
         run: cargo build --release --target x86_64-pc-windows-msvc
 
       - name: Create Release Archive
@@ -120,26 +152,28 @@ jobs:
           New-Item -ItemType Directory -Path "release" -Force
           
           # Copy the executable
-          Copy-Item "target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "release\"
+          Copy-Item "src-tauri\target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "release\"
           
           # Create archive
-          Compress-Archive -Path "release\*" -DestinationPath "streamflow-tauri-windows-${env:RELEASE_VERSION}.zip"
+          Compress-Archive -Path "release\*" -DestinationPath "streamflow-tauri-windows-$env:RELEASE_VERSION.zip"
 
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: streamflow-tauri-windows-${{ env.RELEASE_VERSION }}
-          path: streamflow-tauri-windows-${{ env.RELEASE_VERSION }}.zip
+          name: streamflow-tauri-windows-${{ steps.version.outputs.release_version }}
+          path: streamflow-tauri-windows-*.zip
           retention-days: 30
 
   # Update rolling release
   rolling-release:
     name: Update Rolling Release
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: release
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: write
+    env:
+      RELEASE_VERSION: ${{ needs.release.outputs.release_version }}
     steps:
       - name: Download Release Artifacts
         uses: actions/download-artifact@v4
@@ -147,19 +181,18 @@ jobs:
           path: artifacts
 
       - name: Prepare Release Assets
-        shell: pwsh
         run: |
-          # Find the latest artifact
-          $artifact = Get-ChildItem -Path "artifacts" -Name | Select-Object -First 1
-          $artifactPath = "artifacts\$artifact"
+          # Find the latest artifact directory
+          ARTIFACT_DIR=$(ls -d artifacts/*/ | head -1)
+          
+          # Find the zip file inside
+          ZIP_FILE=$(find "$ARTIFACT_DIR" -name "*.zip" | head -1)
           
           # Move to root for upload
-          Move-Item $artifactPath "streamflow-tauri-rolling-release.zip"
+          mv "$ZIP_FILE" "streamflow-tauri-rolling-release.zip"
           
           # Generate checksums
-          $hash = Get-FileHash -Path "streamflow-tauri-rolling-release.zip" -Algorithm SHA256
-          $checksums = "SHA256: $($hash.Hash)"
-          echo $checksums > "streamflow-tauri-rolling-release.zip.sha256"
+          sha256sum "streamflow-tauri-rolling-release.zip" > "streamflow-tauri-rolling-release.zip.sha256"
 
       - name: Create/Update Rolling Release
         uses: softprops/action-gh-release@v2
@@ -175,18 +208,12 @@ jobs:
             
             **Version:** ${{ env.RELEASE_VERSION }}
             **Commit:** ${{ github.sha }}
-            **Built:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
             **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
             ## Installation
             1. Download the ZIP file
             2. Extract to your desired location
             3. Run `streamflow-tauri.exe`
-            
-            ## SHA256 Checksum
-            ```
-            $(Get-Content "streamflow-tauri-rolling-release.zip.sha256")
-            ```
             
             ## What's New
             - Improved Rust-native architecture following Dorion patterns
@@ -198,3 +225,63 @@ jobs:
             streamflow-tauri-rolling-release.zip
             streamflow-tauri-rolling-release.zip.sha256
           generate_release_notes: false
+
+  # Versioned release (triggered by v*.*.* tags)
+  versioned-release:
+    name: Create Versioned Release
+    runs-on: windows-latest
+    needs: [frontend-lint, code-quality, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: versioned-release
+
+      - name: Get Version from Tag
+        id: tag
+        shell: pwsh
+        run: |
+          $TAG = "${{ github.ref_name }}"
+          $VERSION = $TAG -replace '^v', ''
+          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
+          echo "tag=$TAG" >> $env:GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Build Release
+        working-directory: src-tauri
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Create Release Archive
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "release" -Force
+          Copy-Item "src-tauri\target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "release\"
+          Compress-Archive -Path "release\*" -DestinationPath "streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip"
+          
+          # Generate checksum
+          $hash = Get-FileHash -Path "streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip" -Algorithm SHA256
+          "$($hash.Algorithm): $($hash.Hash)" | Out-File -FilePath "streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip.sha256"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: StreamFlow ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ github.ref_name }}
+          make_latest: true
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip
+            streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip.sha256
