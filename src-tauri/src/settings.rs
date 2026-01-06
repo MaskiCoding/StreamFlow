@@ -1,23 +1,8 @@
 use anyhow::Result;
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-// Lightweight stream status enumeration
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum StreamStatus {
-    Online,
-    Offline,
-    Unknown,
-}
-
-// Minimal saved stream structure for performance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SavedStream {
-    pub name: String,
-    pub url: String,
-    pub status: StreamStatus,
-    pub last_checked: Option<DateTime<Utc>>,
-}
+// Re-export shared types for convenience
+pub use crate::types::{SavedStream, StreamStatus};
 
 // Optimized settings structure - only essential data
 #[derive(Debug, Clone, Serialize, Deserialize)]
