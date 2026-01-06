@@ -1,5 +1,5 @@
 use crate::error::{StreamFlowError, StreamFlowResult};
-use tauri::{App, AppHandle, Window};
+use tauri::{AppHandle, Manager, Window};
 
 /// Window management utilities for StreamFlow-Tauri
 pub struct WindowManager;
@@ -119,8 +119,8 @@ impl WindowManager {
 
 // Tauri commands for window management
 #[tauri::command]
-pub async fn minimize() -> Result<String, String> {
-    match tauri::AppHandle::current().get_webview_window("main") {
+pub async fn minimize(app: AppHandle) -> Result<String, String> {
+    match app.get_webview_window("main") {
         Some(window) => match window.minimize() {
             Ok(_) => Ok("Window minimized".to_string()),
             Err(e) => Err(format!("Failed to minimize window: {}", e)),
@@ -130,8 +130,8 @@ pub async fn minimize() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn toggle_maximize() -> Result<String, String> {
-    match tauri::AppHandle::current().get_webview_window("main") {
+pub async fn toggle_maximize(app: AppHandle) -> Result<String, String> {
+    match app.get_webview_window("main") {
         Some(window) => match window.is_maximized() {
             Ok(true) => match window.unmaximize() {
                 Ok(_) => Ok("Window restored".to_string()),
@@ -148,8 +148,8 @@ pub async fn toggle_maximize() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn close() -> Result<String, String> {
-    match tauri::AppHandle::current().get_webview_window("main") {
+pub async fn close(app: AppHandle) -> Result<String, String> {
+    match app.get_webview_window("main") {
         Some(window) => match window.close() {
             Ok(_) => Ok("Window closed".to_string()),
             Err(e) => Err(format!("Failed to close window: {}", e)),
