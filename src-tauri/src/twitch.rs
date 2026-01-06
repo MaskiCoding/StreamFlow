@@ -250,13 +250,13 @@ mod tests {
 
         // Invalid inputs should return the original trimmed string
         assert_eq!(TwitchValidator::normalize_url("invalid-url"), "invalid-url");
-        
+
         // "spaces" is a valid channel name, so it normalizes to full URL
         assert_eq!(
             TwitchValidator::normalize_url("  spaces  "),
             "https://www.twitch.tv/spaces"
         );
-        
+
         // Truly invalid inputs return trimmed original
         assert_eq!(TwitchValidator::normalize_url("  ab  "), "ab"); // Too short
     }
