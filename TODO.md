@@ -78,10 +78,10 @@
 
 ## 🟢 Minor (Nice to Have / Tech Debt)
 
-- [ ] **14. Consolidate duplicate types**
-  - Files: `config.rs` and `settings.rs` both define `SavedStream`, `StreamStatus`
-  - Note: Low priority - both work independently, just duplicated code
-  - Suggestion: Create shared `types.rs` module in future refactor
+- [x] **14. Consolidate duplicate types**
+  - Files: `config.rs` and `settings.rs` both defined `SavedStream`, `StreamStatus`
+  - Fix: Created shared `types.rs` module, updated both files to import from it
+  - ✅ DONE
 
 ---
 
@@ -91,7 +91,9 @@
 |----------|-------|------|
 | 🔴 Critical | 6 | 6 |
 | 🟡 Major | 7 | 7 |
-| 🟢 Minor | 1 | 0 |
+| 🟢 Minor | 1 | 1 |
+
+## ✅ All tasks complete!
 
 ## CI/CD Features
 
