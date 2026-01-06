@@ -18,6 +18,7 @@ mod util;
 mod window;
 
 use functionality::{cleanup_processes, AppState};
+use tauri::Manager;
 use util::logger;
 
 fn main() {
@@ -75,12 +76,10 @@ fn main() {
             // Utility commands
             util::helpers::get_platform,
         ])
-        .setup(|app: &mut App| {
+        .setup(|app| {
             // Initialize window
             if let Some(window) = app.get_webview_window("main") {
-                if let Err(e) = window.set_title("StreamFlow") {
-                    log::warn!("Failed to set window title: {}", e);
-                }
+                let _ = window.set_title("StreamFlow");
             }
 
             log::info!("Application setup completed successfully");
