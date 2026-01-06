@@ -40,17 +40,10 @@ tokio = { version = "1", features = ["time"] }
 sysinfo = "0.36"
 
 # Utility crates
-base64 = "0.22"
-gumdrop = "0.8.1"
 scraper = "0.21"
 
 [target."cfg(windows)".dependencies]
-winapi = { version = "0.3", features = ["winuser", "shellapi", "wincon"] }
 windows-version = "0.1"
-
-[target.'cfg(target_os = "macos")'.dependencies]
-cocoa = "0.24"
-objc = "0.2"
 
 [features]
 default = []
