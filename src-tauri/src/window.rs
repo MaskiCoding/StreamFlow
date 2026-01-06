@@ -2,8 +2,10 @@ use crate::error::{StreamFlowError, StreamFlowResult};
 use tauri::{AppHandle, Manager, WebviewWindow};
 
 /// Window management utilities for StreamFlow-Tauri
+#[allow(dead_code)]
 pub struct WindowManager;
 
+#[allow(dead_code)]
 impl WindowManager {
     /// Get the main window from the app handle
     pub fn get_main_window(app: &AppHandle) -> StreamFlowResult<WebviewWindow> {

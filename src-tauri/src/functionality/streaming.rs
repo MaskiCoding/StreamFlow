@@ -240,7 +240,7 @@ async fn check_twitch_stream_status(channel: &str) -> StreamFlowResult<String> {
     let client = create_http_client()?;
 
     match client
-        .get(&format!("https://www.twitch.tv/{}", channel))
+        .get(format!("https://www.twitch.tv/{}", channel))
         .send()
         .await
     {
@@ -440,7 +440,7 @@ pub async fn update_quick_stream_status(state: State<'_, AppState>) -> StreamFlo
         match settings.save() {
             Ok(()) => {
                 log::info!("Live status check completed");
-                Ok(format!("Updated stream statuses"))
+                Ok("Updated stream statuses".to_string())
             }
             Err(e) => Err(StreamFlowError::ConfigError(format!(
                 "Failed to save settings: {}",

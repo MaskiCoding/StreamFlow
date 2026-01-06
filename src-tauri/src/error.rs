@@ -3,6 +3,7 @@ use std::fmt;
 
 /// Custom error types for StreamFlow-Tauri
 #[derive(Debug, Serialize)]
+#[allow(clippy::enum_variant_names)]
 pub enum StreamFlowError {
     /// Stream-related errors
     StreamError(String),

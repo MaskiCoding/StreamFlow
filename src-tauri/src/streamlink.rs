@@ -85,7 +85,7 @@ impl StreamlinkManager {
                 *cache = Some((is_running, std::time::SystemTime::now()));
             }
 
-            return is_running;
+            is_running
         }
 
         #[cfg(not(windows))]

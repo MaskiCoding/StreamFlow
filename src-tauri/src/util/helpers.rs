@@ -24,6 +24,7 @@ pub fn get_platform() -> &'static str {
 
 /// Check if running on Windows 7 or earlier
 #[cfg(target_os = "windows")]
+#[allow(dead_code)]
 pub fn is_windows_7() -> bool {
     use windows_version::OsVersion;
 
@@ -34,11 +35,13 @@ pub fn is_windows_7() -> bool {
 }
 
 #[cfg(not(target_os = "windows"))]
+#[allow(dead_code)]
 pub fn is_windows_7() -> bool {
     false
 }
 
 /// Get the application data directory path
+#[allow(dead_code)]
 pub fn get_app_data_dir() -> std::path::PathBuf {
     #[cfg(target_os = "windows")]
     {

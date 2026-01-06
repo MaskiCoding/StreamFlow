@@ -76,25 +76,15 @@ impl Default for BehaviorConfig {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AdvancedConfig {
     pub vlc_path: Option<String>,
     pub streamlink_path: Option<String>,
     pub proxy_url: Option<String>,
+    #[serde(default)]
     pub disable_hardware_accel: bool,
+    #[serde(default)]
     pub debug_mode: bool,
-}
-
-impl Default for AdvancedConfig {
-    fn default() -> Self {
-        Self {
-            vlc_path: None,
-            streamlink_path: None,
-            proxy_url: None,
-            disable_hardware_accel: false,
-            debug_mode: false,
-        }
-    }
 }
 
 impl Config {
@@ -162,11 +152,13 @@ impl Config {
     }
 
     /// Get a mutable reference to quick streams
+    #[allow(dead_code)]
     pub fn get_quick_streams(&self) -> &[SavedStream] {
         &self.quick_streams
     }
 
     /// Add a quick stream (maintains max 4)
+    #[allow(dead_code)]
     pub fn add_quick_stream(&mut self, stream: SavedStream) -> StreamFlowResult<()> {
         // Remove if URL already exists
         self.quick_streams.retain(|s| s.url != stream.url);
@@ -181,6 +173,7 @@ impl Config {
     }
 
     /// Remove a quick stream by index
+    #[allow(dead_code)]
     pub fn remove_quick_stream(&mut self, index: usize) -> StreamFlowResult<()> {
         if index < self.quick_streams.len() {
             self.quick_streams.remove(index);
@@ -193,6 +186,7 @@ impl Config {
     }
 
     /// Update stream status
+    #[allow(dead_code)]
     pub fn update_stream_status(
         &mut self,
         url: &str,
@@ -208,6 +202,7 @@ impl Config {
     }
 
     /// Get environment-specific overrides
+    #[allow(dead_code)]
     pub fn get_env_overrides() -> HashMap<String, String> {
         let mut overrides = HashMap::new();
 
