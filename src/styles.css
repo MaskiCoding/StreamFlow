@@ -75,13 +75,17 @@ body {
   flex: 1;
   height: 35px;
   padding: 0 12px;
-  background-color: var(--surface);
-  border: 1px solid var(--muted);
+  background-color: var(--surface) !important;
+  border: 2px solid var(--iris) !important;
   border-radius: 6px;
   color: var(--text);
   font-size: 14px;
   outline: none;
   transition: all 0.2s ease;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 200px;
 }
 
 .url-input::placeholder {
