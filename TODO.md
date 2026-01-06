@@ -89,11 +89,31 @@
 
 | Priority | Total | Done |
 |----------|-------|------|
-| 🔴 Critical | 6 | 6 |
+| 🔴 Critical | 7 | 7 |
 | 🟡 Major | 7 | 7 |
 | 🟢 Minor | 1 | 1 |
 
 ## ✅ All tasks complete!
+
+### Recent Fixes (v1.1.0+)
+
+- [x] **15. Fix StreamFlowError Serialize**
+  - File: `src-tauri/src/error.rs`
+  - Issue: `StreamFlowError` didn't implement `Serialize` for Tauri IPC
+  - Fix: Added `#[derive(Serialize)]` to enum
+  - ✅ DONE
+
+- [x] **16. Add tauri::Manager import**
+  - File: `src-tauri/src/main.rs`
+  - Issue: Missing `Manager` trait import for `get_webview_window()`
+  - Fix: Added `use tauri::Manager;`
+  - ✅ DONE
+
+- [x] **17. Fix window.rs AppHandle::current()**
+  - File: `src-tauri/src/window.rs`
+  - Issue: `AppHandle::current()` doesn't exist in Tauri 2.x
+  - Fix: Commands now receive `AppHandle` as parameter, added `Manager` trait
+  - ✅ DONE
 
 ## CI/CD Features
 
