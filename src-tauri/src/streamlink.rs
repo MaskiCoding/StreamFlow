@@ -1,6 +1,6 @@
 use crate::process_manager::ProcessManager;
 use log::info;
-use std::sync::OnceLock;
+use std::sync::Mutex;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -8,8 +8,8 @@ use std::os::windows::process::CommandExt;
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-// Cache VLC detection result to avoid repeated system calls
-static VLC_AVAILABLE: OnceLock<(bool, std::time::SystemTime)> = OnceLock::new();
+// Cache VLC detection result with Mutex for updateable caching
+static VLC_CACHE: Mutex<Option<(bool, std::time::SystemTime)>> = Mutex::new(None);
 
 // Cache duration in seconds for VLC detection
 const CACHE_DURATION_SECS: u64 = 30;
@@ -51,10 +51,12 @@ impl StreamlinkManager {
         #[cfg(windows)]
         {
             // Check if we have cached result within valid duration
-            if let Some(&(vlc_available, timestamp)) = VLC_AVAILABLE.get() {
-                if let Ok(elapsed) = timestamp.elapsed() {
-                    if elapsed.as_secs() < CACHE_DURATION_SECS {
-                        return vlc_available;
+            if let Ok(cache) = VLC_CACHE.lock() {
+                if let Some((vlc_available, timestamp)) = *cache {
+                    if let Ok(elapsed) = timestamp.elapsed() {
+                        if elapsed.as_secs() < CACHE_DURATION_SECS {
+                            return vlc_available;
+                        }
                     }
                 }
             }
@@ -76,9 +78,9 @@ impl StreamlinkManager {
             };
             
             // Update cache with fresh result
-            VLC_AVAILABLE.set((is_running, std::time::SystemTime::now())).unwrap_or_else(|_| {
-                log::warn!("Failed to update VLC availability cache");
-            });
+            if let Ok(mut cache) = VLC_CACHE.lock() {
+                *cache = Some((is_running, std::time::SystemTime::now()));
+            }
             
             return is_running;
         }
@@ -86,10 +88,12 @@ impl StreamlinkManager {
         #[cfg(not(windows))]
         {
             // Check if we have cached result within valid duration
-            if let Some(&(vlc_available, timestamp)) = VLC_AVAILABLE.get() {
-                if let Ok(elapsed) = timestamp.elapsed() {
-                    if elapsed.as_secs() < CACHE_DURATION_SECS {
-                        return vlc_available;
+            if let Ok(cache) = VLC_CACHE.lock() {
+                if let Some((vlc_available, timestamp)) = *cache {
+                    if let Ok(elapsed) = timestamp.elapsed() {
+                        if elapsed.as_secs() < CACHE_DURATION_SECS {
+                            return vlc_available;
+                        }
                     }
                 }
             }
@@ -108,9 +112,9 @@ impl StreamlinkManager {
             };
 
             // Update cache with fresh result
-            VLC_AVAILABLE.set((is_running, std::time::SystemTime::now())).unwrap_or_else(|_| {
-                log::warn!("Failed to update VLC availability cache");
-            });
+            if let Ok(mut cache) = VLC_CACHE.lock() {
+                *cache = Some((is_running, std::time::SystemTime::now()));
+            }
 
             return is_running;
         }
