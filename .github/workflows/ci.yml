@@ -176,15 +176,12 @@ jobs:
           
           # Copy the executable
           Copy-Item "src-tauri\target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "release\"
-          
-          # Create archive
-          Compress-Archive -Path "release\*" -DestinationPath "streamflow-tauri-windows-$env:RELEASE_VERSION.zip"
 
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: streamflow-tauri-windows-${{ steps.version.outputs.release_version }}
-          path: streamflow-tauri-windows-*.zip
+          path: release/streamflow-tauri.exe
           retention-days: 30
 
   # Update rolling release
@@ -208,14 +205,14 @@ jobs:
           # Find the streamflow artifact directory specifically
           ARTIFACT_DIR=$(ls -d artifacts/streamflow-tauri-windows-*/ | head -1)
           
-          # Find the zip file inside
-          ZIP_FILE=$(find "$ARTIFACT_DIR" -name "*.zip" | head -1)
+          # Find the exe file inside
+          EXE_FILE=$(find "$ARTIFACT_DIR" -name "*.exe" | head -1)
           
           # Move to root for upload
-          mv "$ZIP_FILE" "streamflow-tauri-rolling-release.zip"
+          mv "$EXE_FILE" "streamflow-tauri.exe"
           
           # Generate checksums
-          sha256sum "streamflow-tauri-rolling-release.zip" > "streamflow-tauri-rolling-release.zip.sha256"
+          sha256sum "streamflow-tauri.exe" > "streamflow-tauri.exe.sha256"
 
       - name: Create/Update Rolling Release
         uses: softprops/action-gh-release@v2
@@ -234,9 +231,8 @@ jobs:
             **Workflow:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
             ## Installation
-            1. Download the ZIP file
-            2. Extract to your desired location
-            3. Run `streamflow-tauri.exe`
+            1. Download `streamflow-tauri.exe`
+            2. Run it directly - no installation needed!
             
             ## What's New
             - Improved Rust-native architecture following Dorion patterns
@@ -245,8 +241,8 @@ jobs:
             - Modern modular codebase structure
             
           files: |
-            streamflow-tauri-rolling-release.zip
-            streamflow-tauri-rolling-release.zip.sha256
+            streamflow-tauri.exe
+            streamflow-tauri.exe.sha256
           generate_release_notes: false
 
   # Versioned release (triggered by v*.*.* tags)
@@ -286,16 +282,15 @@ jobs:
         working-directory: src-tauri
         run: cargo build --release --target x86_64-pc-windows-msvc
 
-      - name: Create Release Archive
+      - name: Prepare Release
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path "release" -Force
-          Copy-Item "src-tauri\target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "release\"
-          Compress-Archive -Path "release\*" -DestinationPath "streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip"
+          # Copy executable with versioned name
+          Copy-Item "src-tauri\target\x86_64-pc-windows-msvc\release\streamflow-tauri.exe" -Destination "streamflow-tauri-${{ steps.tag.outputs.version }}.exe"
           
           # Generate checksum
-          $hash = Get-FileHash -Path "streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip" -Algorithm SHA256
-          "$($hash.Algorithm): $($hash.Hash)" | Out-File -FilePath "streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip.sha256"
+          $hash = Get-FileHash -Path "streamflow-tauri-${{ steps.tag.outputs.version }}.exe" -Algorithm SHA256
+          "$($hash.Algorithm): $($hash.Hash)" | Out-File -FilePath "streamflow-tauri-${{ steps.tag.outputs.version }}.exe.sha256"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -306,5 +301,5 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip
-            streamflow-tauri-windows-${{ steps.tag.outputs.version }}.zip.sha256
+            streamflow-tauri-${{ steps.tag.outputs.version }}.exe
+            streamflow-tauri-${{ steps.tag.outputs.version }}.exe.sha256
