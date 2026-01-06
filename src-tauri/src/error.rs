@@ -1,7 +1,8 @@
+use serde::Serialize;
 use std::fmt;
 
 /// Custom error types for StreamFlow-Tauri
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum StreamFlowError {
     /// Stream-related errors
     StreamError(String),
